@@ -1,0 +1,6 @@
+Host hackzh15
+	Hostname k42.ch
+	Port 47806
+	User ubuntu
+	IdentityFile ~/.ssh/id_hackzurich
+	IdentitiesOnly yes

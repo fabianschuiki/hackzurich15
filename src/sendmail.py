@@ -20,7 +20,6 @@ def sendmail(sender, receiver, subject, body):
     p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
     p.communicate(msg.as_string())
 
-
 def prependHeaders(aheader, abody):
     nbody = str(len(aheader)) + "\n"
     for h, v in aheader:

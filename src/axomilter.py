@@ -2,15 +2,10 @@
 
 # Very Doc: https://stuffivelearned.org/doku.php?id=programming:python:python-libmilter
 
-import sys
-import os
-import argparse
 import libmilter as lm
-import sys, time
-
-from axoctl import *
-
-import StringIO
+import sys
+import time
+#from axoctl import *
 
 HOST = "example.com"
 
@@ -127,6 +122,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
                 # Encrypt it with less euphoria
                 # axoctl.process_outbound(mail)
                 #AxoCtl().process_outbound(mail)
+                action = lm.DISCARD
         else:
             self.log("WHAT A TERRIBLE FAILURE :'(")
 
@@ -168,7 +164,7 @@ def is_outbound(m_from, m_to):
 def main():
     import signal, traceback
     global HOST
-
+    print("Reading HOST file.")
     HOST = host()
     # We can set our milter opts here
     opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS | lm.SMFIF_CHGBODY
@@ -176,6 +172,7 @@ def main():
     # We initialize the factory we want to use (you can choose from an
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the
     # appropriate mixin classes for your milter for Thread and Fork)
+    print("Setting up ForkFactory")
     f = lm.ForkFactory('inet:127.0.0.1:5000', AxoMilter, opts)
 
     def sigHandler(num, frame):
@@ -186,6 +183,8 @@ def main():
     signal.signal(signal.SIGINT, sigHandler)
     try:
         # run it
+        print("Starting now.")
+        sys.stdout.flush()
         f.run()
     except Exception, e:
         f.close()

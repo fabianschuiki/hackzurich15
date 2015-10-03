@@ -8,7 +8,7 @@
 
 from pyaxo import Axolotl
 from contextlib import contextmanager
-from sendmail import sendmimemail
+from sendmail import sendmimemail, sendrawmail
 from email.mime.text import MIMEText
 import os
 import binascii

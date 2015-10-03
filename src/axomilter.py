@@ -32,10 +32,6 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         self.is_axotype = False
         self.rq_axo = False
 
-    def log(self, msg):
-        t = time.strftime('%H:%M:%S')
-        logger.debug('[%s] %s' % (t, msg))
-
     @lm.noReply
     def connect(self, hostname, family, ip, port, cmdDict):
         logger.debug('Connect from %s:%d (%s) with family: %s' % (ip, port,
@@ -91,7 +87,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         return lm.CONTINUE
 
     def eob(self, cmdDict):
-        self.log('EOB')
+        logger.debug('EOB')
         mail = {'from': self.m_from, 'to': self.m_to, 'headers': self.m_header, 'body': self.m_body}
         action = lm.DISCARD
         if is_local(self.m_from, self.m_to):

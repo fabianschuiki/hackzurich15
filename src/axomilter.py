@@ -5,7 +5,7 @@
 import libmilter as lm
 import sys
 import time
-#from axoctl import *
+from axoctl import *
 
 HOST = "example.com"
 
@@ -114,7 +114,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             elif self.rq_axo:
                 self.log("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
-                #AxoCtl().process_outbound(mail)
+                AxoCtl().process_outbound(mail)
                 # axoctl.process_outbound(mail)
                 action = lm.DISCARD
             else:
@@ -174,7 +174,6 @@ def main():
     # appropriate mixin classes for your milter for Thread and Fork)
     print("Setting up ForkFactory")
     f = lm.ForkFactory('inet:127.0.0.1:5000', AxoMilter, opts)
-
     def sigHandler(num, frame):
         print "Good bye!"
         f.close()

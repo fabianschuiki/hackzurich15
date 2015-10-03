@@ -85,7 +85,7 @@ class AxoCtl(object):
         sendrawmail(decoded, mail["from"], mail["to"])
 
 
-    def send_fingerprint_mail(my_DHIs, my_id, other_DHIs, other_id):
+    def send_fingerprint_mail(self, my_DHIs, my_id, other_DHIs, other_id):
         self.logger.info("sending fingerprint to %s" % my_id)
 
         my_segs    = my_id.split("@",1)

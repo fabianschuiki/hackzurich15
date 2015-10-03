@@ -147,6 +147,9 @@ class myMilter(Milter.Base):
         return Milter.CONTINUE
 
     def eom(self):
+
+        # HZ: DO MAGIC HERE!
+
         self.fp.seek(0)
         subject = 'none'
 
@@ -273,37 +276,18 @@ def main():
     global spool_dir
     global ctx
     parser = \
-        argparse.ArgumentParser(description='OPENPGPKEY milter application'
-                                , epilog='For bugs. see paul@nohats.ca')
-    parser.add_argument('--anchor', '-a', action='store', default='',
-                        help='location of the unbound DNSSEC trust anchor file (default /var/lib/unbound/root.anchor')
+        argparse.ArgumentParser(description='MILF MILTER'
+                                , epilog='Bugfree.')
     parser.add_argument('--port', '-p', action='store', default='8890',
                         help='port on localhost to use (default 8890)')
-    parser.add_argument('--pid', '-P', action='store', default='',
-                        help='pidfile to create (default no pid file is created')
     parser.add_argument('--rrtype', '-r', action='store',
                         default='65280',
                         help='RRtype allocation (default private use 65280)')
-    parser.add_argument('--spool', '-s', action='store',
-                        default='/var/spool/openpgpkey-milter',
-                        help='spool dir for tmp files (default /var/spool/openpgpkey-milter)')
     parser.add_argument('--timeout', '-t', action='store', default=600,
                         help='timeout (default 600)')
-    parser.add_argument('--version', action='store_true',
-                        help='show version and exit')
     args = parser.parse_args()
-    if args.version:
-        print 'openpgpkey-milter version %s by Paul Wouters <paul@cypherpunks.ca>' % VERSION
-        print '     options: --rrtype %s --spool %s  --port %s  --timeout %s --pid <pidfile>' % (args.rrtype, args.spool, args.port, args.timeout)
-        sys.exit()
-
-    if args.anchor:
-        if not os.path.isfile(args.anchor):
-           sys.exit("anchor file '%s' does not exist"%args.anchor)
-        ctx.add_ta_file(args.anchor)
 
     socketname = 'inet:%s@127.0.0.1' % args.port
-    spool_dir = args.spool
 
     bt = Thread(target=background)
     bt.start()
@@ -316,13 +300,6 @@ def main():
     Milter.set_flags(flags)
 
     mypid = str(os.getpid())
-    if args.pid:
-       try:
-            fp = open(args.pid,"w")
-            fp.write(mypid)
-            fp.close()
-       except:
-              sys.exit("Failed to write pid, aborted")
 
     syslog('starting daemon [%s] version %s on port %s at %s with timeout %s'
             % (mypid, VERSION, args.port, args.spool, args.timeout))
@@ -331,9 +308,6 @@ def main():
     logq.put(None)
     bt.join()
     syslog('shutting down daemon')
-
-    if os.path.isfile(args.pid) and not os.path.islink(args.pid):
-       os.unlink(args.pid)
 
 if __name__ == '__main__':
     main()

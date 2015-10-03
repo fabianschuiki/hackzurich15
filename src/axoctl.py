@@ -77,7 +77,8 @@ class AxoCtl(object):
         print "send mail %s" % mail
         msg = MIMEText(mail["body"])
         for k,v in mail["headers"]:
-            msg[k] = v
+            if k.lower() != "content-type":
+                msg[k] = v
         msg["Content-Type"] = "message/x-axonaut"
         sendmimemail(msg, mail["from"], mail["to"])
 
@@ -193,7 +194,8 @@ class AxoCtl(object):
             print "decrypting message"
             msg = MIMEText(in_mail["body"])
             for k,v in in_mail["headers"]:
-                msg[k] = v
+                if k.lower() != "content-type":
+                    msg[k] = v
             msg["Content-Type"] = "text/plain"
             sendmimemail(msg, in_mail["from"], in_mail["to"])
 

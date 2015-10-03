@@ -101,6 +101,8 @@ class AxoCtl(object):
         sendrawmail(decoded, mail["from"], mail["to"])
 
 
+    # Called for every message that arrives at the server bound for an external
+    # recipient.
     def process_outbound(self, in_mail):
         """
         Function to encrypt an outgoing mail. Also makes a new key request if the partner key is not available.
@@ -110,8 +112,6 @@ class AxoCtl(object):
         other_id = in_mail["to"]
         self.logger.info("outbound mail from %s to %s" % (my_id, other_id))
 
-        # Look for a content type header that indicates what to do with this
-        # message.
         content_type = None
         for k, v in in_mail["headers"]:
             kl = k.lower()
@@ -127,17 +127,22 @@ class AxoCtl(object):
         handshake_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
+        # Encrypt all messages that are not already encrypted.
         if content_type != "message/x-axonaut":
-            # If this is a message that we are supposed to encode, see whether we
-            # already have an established session. If we don't, we need to negotiate
-            # keys with our peer first.
 
+            # Figure out the next queue file name in case we need to keep the
+            # message around for later delivery.
             i = 1;
             path = None
             while path == None or os.path.exists(path):
                 path = "%s/%04i" % (queue_path, i)
                 i = i + 1
 
+            # Check whether we already have established a handshake. If this is
+            # not the case, send a keyreq message to the recipient that contains
+            # our half of the key exchange information. The message that was
+            # originally intended for dispatch is stored in a queue for later
+            # delivery as soon as the encryption keys have been negotiated.
             if not os.path.exists(handshake_path):
                 self.logger.debug("sending keyreq to %s" % other_id)
                 a = self.makeAxolotl(my_id)
@@ -159,6 +164,14 @@ class AxoCtl(object):
                 kreq_msg["Content-Type"] = "message/x-axonaut+keyreq"
                 sendmimemail(kreq_msg, my_id, other_id)
 
+                # The following is an ugly hack: pyaxo expects an Axolotl object
+                # to be created and the keys negotiated before the object is
+                # destroyed and the state saved to disk. This does not work in
+                # our case, since we need to wait for a potentially long period
+                # of time until we can finalize the handshake. Therefore we
+                # serialize the Axolotl state and especially the handshake pre-
+                # keys to disk, such that we may resume the handshake at a later
+                # stage.
                 pickle.dump({
                     "state": a.state,
                     "pub": a.handshakePKey,
@@ -166,6 +179,14 @@ class AxoCtl(object):
                 }, open(handshake_path, "w"))
 
             else:
+                # If we've come this far, the handshake has been initiated. That
+                # is, at least the keyreq message has been sent to the peer. Two
+                # things may now happen: Either the Axolotl conversation is
+                # already initialized, in which case loadState() will succeed
+                # and we may continue to encrypt our message. Or the state has
+                # not yet been initialized, and an exception is thrown. In case
+                # of the exception we store the message in the queue for later
+                # encryption, as soon as the handshake terminates.
                 try:
                     a = self.makeAxolotl(my_id)
                     a.loadState(my_id, other_id)
@@ -179,6 +200,8 @@ class AxoCtl(object):
                     pickle.dump(in_mail, open(path, "w"))
 
 
+    # Called for every message arriving at the server that is bound for a local
+    # recipient.
     def process_inbound(self, in_mail):
         """
         Function to decrypt an incoming mail. Responds to a key request if necessary.
@@ -188,8 +211,6 @@ class AxoCtl(object):
         other_id = in_mail["from"]
         self.logger.info("inbound mail from %s to %s" % (my_id, other_id))
 
-        # Look for a content type header that indicates what to do with this
-        # message.
         content_type = None
         for k, v in in_mail["headers"]:
             kl = k.lower()
@@ -205,7 +226,14 @@ class AxoCtl(object):
         handshake_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
-        # Encrypted messages need to be decrypted.
+        # Encrypted messages targeted at a local user need to be decrypted
+        # before they are relayed. The encryption status is indicated by a
+        # special content type. Two cases are possible: Either the Axolotl
+        # handshake has been completed, in which case loadState() succeeds and
+        # the message may be decrypted normally. Or the handshake is in progress
+        # or has not been started at all, in which case no decryption is
+        # possible. In the latter case, we might want to inform the sender about
+        # the situation.
         if content_type == "message/x-axonaut":
             try:
                 a = self.makeAxolotl(my_id)
@@ -215,6 +243,21 @@ class AxoCtl(object):
             except Exception as e:
                 self.logger.exception("unable to decrypt message: %s" % e)
 
+                msg = MIMEMultipart()
+                msg["Subject"] = "Message cannot be decrypted, return to sender"
+                msg["From"]    = my_id
+                msg["To"]      = other_id
+                msg.preamble   = "The attached message was received by the sender, but cannot be decrypted. This indicates that no secure Axolotl conversation has been established beforehand."
+
+                raw_msg = MIMEText(mail["body"])
+                for k,v in mail["headers"]:
+                    raw_msg[k] = v
+                raw = raw_msg.as_string()
+
+                mret = MIMEText(raw)
+                mret["Content-Type"] = "message/rfc822"
+                msg.attach(mret)
+                sendmimemail(msg, my_id, other_id)
                 # TODO: Send response that decryption is not possible due to
                 # lack of established session.
 
@@ -284,6 +327,6 @@ class AxoCtl(object):
                 sendmimemail(krsp_msg, my_id, other_id)
                 a.saveState()
 
-                os.touch(handshake_path)
+                os.mknod(handshake_path)
 
         return

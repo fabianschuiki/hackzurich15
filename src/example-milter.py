@@ -87,7 +87,7 @@ def main():
     args = parser.parse_args()
 
     # We can set our milter opts here
-    opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE
+    opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS
 
     # We initialize the factory we want to use (you can choose from an
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the

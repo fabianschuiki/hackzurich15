@@ -61,19 +61,19 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         return lm.CONTINUE
 
     @lm.noReply
-    def mailFrom(self, frAddr, cmdDict):
-        logger.info('FROM: %s' % frAddr)
-        self.m_from = frAddr
+    def mailFrom(self, form_addr, cmd_dict):
+        logger.info('FROM: %s' % form_addr)
+        self.m_from = form_addr
         return lm.CONTINUE
 
     @lm.noReply
-    def rcpt(self, recip, cmdDict):
+    def rcpt(self, recip, cmd_dict):
         logger.info('RCPT: %s' % recip)
         self.m_to = recip
         return lm.CONTINUE
 
     @lm.noReply
-    def header(self, key, val, cmdDict):
+    def header(self, key, val, cmd_dict):
         logger.debug('%s: %s' % (key, val))
 
         # save dat headers
@@ -103,7 +103,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
     def body(self, chunk, cmdDict):
         logger.debug('Body chunk: %d' % len(chunk))
         # save stuff in memory :)
-        self.m_body += chunk;
+        self.m_body += chunk
         return lm.CONTINUE
 
     def eob(self, cmdDict):

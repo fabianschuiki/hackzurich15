@@ -47,7 +47,7 @@ class AxoCtl(object):
 
     def err(self, msg):
         t = time.strftime("%H:%M:%S")
-        sys.stderr.write("[%s] axoctl: *** \033[32merror\033[0m %s\n" % (t, msg))
+        sys.stderr.write("[%s] axoctl: \033[31;1m*** error\033[0m %s\n" % (t, msg))
         sys.stderr.flush()
 
 
@@ -170,7 +170,7 @@ class AxoCtl(object):
             else:
                 try:
                     a = self.makeAxolotl(my_id)
-                    a.loadState()
+                    a.loadState(my_id, other_id)
                     self.encrypt_and_send_mail(in_mail, a)
                     a.saveState()
 
@@ -211,7 +211,7 @@ class AxoCtl(object):
         if content_type == "message/x-axonaut":
             try:
                 a = self.makeAxolotl(my_id)
-                a.loadState(other_id)
+                a.loadState(my_id, other_id)
                 self.decrypt_and_send_mail(in_mail, a)
                 a.saveState()
             except Exception as e:
@@ -256,7 +256,7 @@ class AxoCtl(object):
 
             a = self.makeAxolotl(my_id)
             try:
-                a.loadState()
+                a.loadState(my_id, other_id)
                 self.err("received keyreq event though already exchanged")
             except:
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)

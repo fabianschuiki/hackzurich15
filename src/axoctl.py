@@ -192,9 +192,9 @@ class AxoCtl(object):
             a.handshakeKey = hs["priv"]
 
             segments = in_mail["body"].split('\n')
-            DHIs = segments[0]
-            DHRs = segments[1]
-            handshakePKey = segments[2]
+            DHIs = segments[0].strip()
+            DHRs = segments[1].strip()
+            handshakePKey = segments[2].strip()
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
             # TODO: Flush the queue and encrypt all pending messages, like a sir
@@ -203,9 +203,9 @@ class AxoCtl(object):
 
         elif content_type == "message/x-axonaut+keyreq":
             segments = in_mail["body"].split('\n')
-            DHIs = segments[0]
-            DHRs = segments[1]
-            handshakePKey = segments[2]
+            DHIs = segments[0].strip()
+            DHRs = segments[1].strip()
+            handshakePKey = segments[2].strip()
 
             a = self.makeAxolotl(my_id)
             try:

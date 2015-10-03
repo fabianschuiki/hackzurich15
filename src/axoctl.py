@@ -95,20 +95,11 @@ class AxoCtl(object):
         other_name = other_segs[0]
         other_host = other_segs[1]
 
-        mfp = MIMEMultipart()
+        drunk = GetFPrintMail(my_DHIs, my_name, other_DHIs, other_name)
+        mfp = MIMEText("<html><body><p>Hello %(my_name)s,</p>\n\n<p>Your e-mail conversation with %(other_id)s was encrypted via the awesome Axonaut e-mail encryption service. To verify the identity of %(other_name)s, compare the following fingerprints with your partner.</p>\n\n<p>They should match with the corresponding fingerprints we sent to %(other_name)s otherwise you might be a victim of an active attack!</p>\n\n<pre>%(drunk)s</pre>\n\n<p>Best regards,<br/>\nyour friendly Axonauts</p>\n</body></html>" % {"my_name": my_name, "other_name": other_name, "other_id": other_id, "drunk": drunk}, "html")
         mfp["From"] = "mailadmin@%s" % my_host
         mfp["To"] = my_id
         mfp["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
-
-        part_msg = MIMEText("Hello %(my_name)s,\n\nYour e-mail conversation with %(other_id)s was encrypted via the awesome Axonaut e-mail encryption service. To verify the identity of %(other_name)s, compare the following fingerprints with your partner.\n\nThey should match with the corresponding fingerprints we sent to %(other_name)s otherwise you might be a victim of an active attack!\n\nBest regards,\nyour friendly Axonauts\n" % {"my_name": my_name, "other_name": other_name, "other_id": other_id}, "plain")
-        part_msg["Content-Disposition"] = "inline"
-
-        drunk = GetFPrintMail(my_DHIs, my_name, other_DHIs, other_name)
-        part_fp = MIMEText("<html><body><pre>%s</pre></body></html>" % drunk, "html")
-        part_fp["Content-Disposition"] = "inline"
-
-        mfp.attach(part_msg)
-        mfp.attach(part_fp)
         sendmimemail(mfp, mfp["From"], my_id)
 
     # Called for every message that arrives at the server bound for an external
@@ -262,7 +253,6 @@ class AxoCtl(object):
                 msg["To"]      = other_id
 
                 msg_txt = MIMEText("The attached message was received by the sender, but cannot be decrypted. This indicates that no secure Axolotl conversation has been established beforehand.", "plain")
-                msg_txt["Content-Disposition"] = "inline"
 
                 raw_msg = MIMEText(in_mail["body"])
                 for k, v in in_mail["headers"]:
@@ -270,6 +260,7 @@ class AxoCtl(object):
                 raw = raw_msg.as_string()
                 mret = MIMEText(raw)
                 mret["Content-Type"] = "message/rfc822"
+                mret["Content-Disposition"] = "attachment"
 
                 msg.attach(msg_txt)
                 msg.attach(mret)

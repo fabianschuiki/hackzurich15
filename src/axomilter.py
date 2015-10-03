@@ -102,7 +102,8 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 # decrypt if axolotl
                 try:
                     AxoCtl().process_inbound(mail)
-                except:
+                except Exception as e:
+                    print("Error: %s" % e)
                     traceback.print_exc()
                 action = lm.DISCARD
 

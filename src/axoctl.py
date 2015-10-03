@@ -14,6 +14,7 @@ import os
 import binascii
 import hashlib
 import pickle
+import sys
 
 
 class AxoCtl(object):
@@ -170,8 +171,10 @@ class AxoCtl(object):
         for k, v in in_mail["headers"]:
             if k.lower() == "content-type":
                 content_type = v.lower()
+
         print "content_type = %s" % content_type
         print "Got: %s" % in_mail
+        sys.stdout.flush()
 
         my_id = in_mail["to"]
         other_id = in_mail["from"]

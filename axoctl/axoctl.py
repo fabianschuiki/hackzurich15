@@ -1,18 +1,10 @@
 #!/usr/bin/env python2
 
-##################################################
-#
-#
-#	HackZurich15
-#
-#
-#	AxoCtl
-#
-#
-# 	by T. Richner, F. Schuiki, M. Eppenberger
-#
-#
-##################################################
+# ====
+# HackZurich15
+# AxoCtl
+# by T. Richner, F. Schuiki, M. Eppenberger
+# ====
 
 from pyaxo import Axolotl
 from contextlib import contextmanager

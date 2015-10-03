@@ -21,12 +21,10 @@ relay:
 
 - pymilter: https://pythonhosted.org/milter/
 - pymilter doc: https://pythonhosted.org/pymilter/namespaceMilter.html
-
 - axolotl ratchet in Go: https://github.com/janimo/textsecure
 - axolotl ratchet: https://github.com/trevp/axolotl/wiki
 - Open Whisper Systems blog post: https://whispersystems.org/blog/advanced-ratcheting/
 - Pond, similar stuff: https://github.com/agl/pond
-
 - pyaxo, axolotl implementation in python: https://github.com/rxcomm/pyaxo
 
 ## Setup

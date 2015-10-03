@@ -122,7 +122,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
 
 def host():
     with open('HOST', 'r') as content_file:
-        hostname = content_file.read()
+        hostname = content_file.read().strip()
     return hostname
 
 

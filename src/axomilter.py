@@ -13,6 +13,7 @@ import StringIO
 HOST = "example.com"
 
 CT_AXOMAIL = "message/x-axonaut"
+RQ_AXOMAIL = "[AXONAUT]"
 
 
 # Create our milter class with the forking mixin and the regular milter
@@ -28,6 +29,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         self.m_from = ""
         self.m_to = ""
         self.is_axotype = False
+        self.rq_axo = False
 
     def log(self, msg):
         t = time.strftime('%H:%M:%S')
@@ -67,6 +69,9 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         if key.lower() == "content-type" and val.startswith(CT_AXOMAIL):
             self.is_axotype = True
 
+        if key.lower() == "subject" and val.startswith(RQ_AXOMAIL):
+            self.rq_axo = True
+
         return lm.CONTINUE
 
     @lm.noReply
@@ -97,7 +102,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             if self.is_axotype:
                 self.log("AXONAUT - decrypting")
                 # decrypt if axolotl
-                # plainmail = axoctl.process_inbound(mail)
+                # axoctl.process_inbound(mail)
                 self.replBody(plainmail['body'])
                 action = lm.CONTINUE
 
@@ -109,11 +114,15 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             if self.is_axotype:
                 self.log("AXONAUT - nice, job already done, forward")
                 action = lm.CONTINUE
-            else:
-                self.log("AXONAUT - encrypt")
+            elif self.rq_axo:
+                self.log("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
-                # cyphermail = axoctl.process_outbound(mail)
+                # axoctl.process_outbound(mail)
                 action = lm.DISCARD
+            else:
+                self.log("AXONAUT - norq, encrypt it anyway")
+                # Encrypt it with less euphoria
+                # axoctl.process_outbound(mail)
         else:
             self.log("WHAT A TERRIBLE FAILURE :'(")
 

@@ -105,7 +105,7 @@ class AxoCtl(object):
         part_msg["Content-Disposition"] = "inline"
 
         drunk = GetFPrintMail(my_DHIs, my_name, other_DHIs, other_name)
-        part_fp = MIMEText("<html><body><pre>%s</pre></body></html>" % drunk)
+        part_fp = MIMEText("<html><body><pre>%s</pre></body></html>" % drunk, "html")
         part_fp["Content-Disposition"] = "inline"
 
         mfp.attach(part_msg)

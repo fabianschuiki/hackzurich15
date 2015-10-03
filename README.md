@@ -4,9 +4,9 @@
 ## VirtualMachines:
 
 
-url Alice: maxo0.cloudapp.net or 40.113.20.240<br>
-url Bob: maxo1.cloudapp.net or 40.113.91.78<br>
-url Relay: maxorelay.cloudapp.net or 40.78.159.248<br>
+url Alice: maxo0.cloudapp.net or 40.113.12.166<br>
+url Bob: maxo1.cloudapp.net or 40.113.12.78<br>
+url Relay: maxorelay.cloudapp.net or 40.122.174.29<br>
 
 bn: azureuser<br>
 pw: B77d795d<br>
@@ -26,3 +26,12 @@ relay:
 - axolotl ratchet: https://github.com/trevp/axolotl/wiki
 - Open Whisper Systems blog post: https://whispersystems.org/blog/advanced-ratcheting/
 - Pond, similar stuff: https://github.com/agl/pond
+
+- pyaxo, axolotl implementation in python: https://github.com/rxcomm/pyaxo
+
+## Setup
+
+- `pip install pyaxo`
+- create `HOST` file in `src/`
+- configure postfix for milter, add `smtpd_milters = inet:localhost:5000` to `/etc/postfix/main.cf`
+

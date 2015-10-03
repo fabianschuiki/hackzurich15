@@ -8,6 +8,9 @@ import time
 from axoctl import AxoCtl
 import traceback
 
+from log import new_logger
+import logging
+
 HOST = "example.com"
 
 CT_AXOMAIL = "message/x-axonaut"
@@ -31,35 +34,34 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
 
     def log(self, msg):
         t = time.strftime('%H:%M:%S')
-        print '[%s] %s' % (t, msg)
-        sys.stdout.flush()
+        logger.debug('[%s] %s' % (t, msg))
 
     @lm.noReply
     def connect(self, hostname, family, ip, port, cmdDict):
-        self.log('Connect from %s:%d (%s) with family: %s' % (ip, port,
+        logger.debug('Connect from %s:%d (%s) with family: %s' % (ip, port,
                                                               hostname, family))
         return lm.CONTINUE
 
     @lm.noReply
     def helo(self, heloname):
-        self.log('HELO: %s' % heloname)
+        logger.info('HELO: %s' % heloname)
         return lm.CONTINUE
 
     @lm.noReply
     def mailFrom(self, frAddr, cmdDict):
-        self.log('MAIL: %s' % frAddr)
+        logger.info('FROM: %s' % frAddr)
         self.m_from = frAddr
         return lm.CONTINUE
 
     @lm.noReply
     def rcpt(self, recip, cmdDict):
-        self.log('RCPT: %s' % recip)
+        logger.info('RCPT: %s' % recip)
         self.m_to = recip
         return lm.CONTINUE
 
     @lm.noReply
     def header(self, key, val, cmdDict):
-        self.log('%s: %s' % (key, val))
+        logger.debug('%s: %s' % (key, val))
 
         # save dat headers
         self.m_header.append((key, val))
@@ -74,16 +76,16 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
 
     @lm.noReply
     def eoh(self, cmdDict):
-        self.log('EOH')
+        logger.debug('EOH')
         return lm.CONTINUE
 
     def data(self, cmdDict):
-        self.log('DATA')
+        logger.debug('DATA')
         return lm.CONTINUE
 
     @lm.noReply
     def body(self, chunk, cmdDict):
-        self.log('Body chunk: %d' % len(chunk))
+        logger.debug('Body chunk: %d' % len(chunk))
         # save stuff in memory :)
         self.m_body += chunk;
         return lm.CONTINUE
@@ -93,12 +95,12 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         mail = {'from': self.m_from, 'to': self.m_to, 'headers': self.m_header, 'body': self.m_body}
         action = lm.DISCARD
         if is_local(self.m_from, self.m_to):
-            self.log("LOCAL")
+            logger.info("LOCAL")
             action = lm.CONTINUE
         elif is_inbound(self.m_from, self.m_to):
-            self.log("INBOUND")
+            logger.info("INBOUND")
             if self.is_axotype:
-                self.log("AXONAUT - decrypting")
+                logger.info("AXONAUT - decrypting")
                 # decrypt if axolotl
                 try:
                     AxoCtl().process_inbound(mail)
@@ -108,33 +110,33 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 action = lm.DISCARD
 
             else:
-                self.log("LEGACY MAIL - forwarding")
+                logger.info("LEGACY MAIL - forwarding")
                 action = lm.CONTINUE  # legacy mails?
         elif is_outbound(self.m_from, self.m_to):
-            self.log("OUTBOUND")
+            logger.info("OUTBOUND")
             if self.is_axotype:
-                self.log("AXONAUT - nice, job already done, forward")
+                logger.info("AXONAUT - nice, job already done, forward")
                 action = lm.CONTINUE
             elif self.rq_axo:
-                self.log("AXONAUT - axorq -> encrypt!")
+                logger.info("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
                 AxoCtl().process_outbound(mail)
                 # axoctl.process_outbound(mail)
                 action = lm.DISCARD
             else:
-                self.log("AXONAUT - norq, encrypt it anyway")
+                logger.info("AXONAUT - norq, encrypt it anyway")
                 # Encrypt it with less euphoria
                 # axoctl.process_outbound(mail)
                 AxoCtl().process_outbound(mail)
                 action = lm.DISCARD
         else:
-            self.log("WHAT A TERRIBLE FAILURE :'(")
+            logger.error("WHAT A TERRIBLE FAILURE :'(")
 
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return action
 
     def close(self):
-        self.log('Close called. QID: %s' % self._qid)
+        logger.debug('Close called. QID: %s' % self._qid)
 
 
 def host():
@@ -168,7 +170,7 @@ def is_outbound(m_from, m_to):
 def main():
     import signal, traceback
     global HOST
-    print("Reading HOST file.")
+    logger.debug("Reading HOST file.")
     HOST = host()
     # We can set our milter opts here
     opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS | lm.SMFIF_CHGBODY
@@ -176,25 +178,27 @@ def main():
     # We initialize the factory we want to use (you can choose from an
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the
     # appropriate mixin classes for your milter for Thread and Fork)
-    print("Setting up ForkFactory")
+    logger.debug("Setting up ForkFactory")
     f = lm.ThreadFactory('inet:127.0.0.1:5000', AxoMilter, opts)
+
     def sigHandler(num, frame):
-        print "Good bye!"
+        logger.info("Good bye!")
         f.close()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, sigHandler)
     try:
         # run it
-        print("Starting now.")
+        logger.debug("Magic Milter ready to go.")
         sys.stdout.flush()
         f.run()
     except Exception, e:
         f.close()
-        print >> sys.stderr, 'EXCEPTION OCCURED: %s' % e
+        logger.exception("Whut just happenend?!? o.O")
         traceback.print_tb(sys.exc_traceback)
         sys.exit(3)
 
+logger = new_logger('milter', logging.DEBUG)
 
 if __name__ == '__main__':
     main()

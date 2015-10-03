@@ -46,6 +46,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         self.m_to = ""
         self.is_axotype = False
         self.rq_axo = False
+        logger.info(" ---- >8 ---- ")
 
     @lm.noReply
     def connect(self, hostname, family, ip, port, cmdDict):
@@ -143,6 +144,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 action = lm.DISCARD
         else:
             logger.error("WHAT A TERRIBLE FAILURE :'(")
+            logger.error("Did you set up the HOST file correctly?")
 
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return action

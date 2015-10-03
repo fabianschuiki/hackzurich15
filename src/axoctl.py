@@ -86,9 +86,11 @@ class AxoCtl(object):
             if k.lower() == "content-type":
                 content_type = v.lower()
         print "content_type = %s" % content_type
-
+        sys.stdout.flush()
         my_id = in_mail["from"]
         other_id = in_mail["to"]
+        print "From %s to %s " % (my_id, other_id)
+        sys.stdout.flush()
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
         hskey_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash

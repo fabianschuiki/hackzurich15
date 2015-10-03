@@ -123,12 +123,14 @@ class AxoCtl(object):
         self.logger.info("outbound mail from %s to %s" % (my_id, other_id))
 
         content_type = None
+        msg_id = None
         for k, v in in_mail["headers"]:
             kl = k.lower()
             if kl == "content-type":
                 content_type = v.lower()
             if kl == "message-id":
-                in_mail["id"] = v
+                msg_id = v
+        in_mail["id"] = msg_id
 
         self.logger.debug("content_type = %s" % content_type)
         self.logger.debug("message_id = %s" % in_mail["id"])
@@ -222,12 +224,14 @@ class AxoCtl(object):
         self.logger.info("inbound mail from %s to %s" % (my_id, other_id))
 
         content_type = None
+        msg_id = None
         for k, v in in_mail["headers"]:
             kl = k.lower()
             if kl == "content-type":
                 content_type = v.lower()
             if kl == "message-id":
-                in_mail["id"] = v
+                msg_id = v
+        in_mail["id"] = msg_id
 
         self.logger.debug("content_type = %s" % content_type)
         self.logger.debug("message_id = %s" % in_mail["id"])

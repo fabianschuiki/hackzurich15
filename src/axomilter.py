@@ -8,7 +8,7 @@ import argparse
 import libmilter as lm
 import sys, time
 
-from axolotl import *
+from axoctl import *
 
 import StringIO
 

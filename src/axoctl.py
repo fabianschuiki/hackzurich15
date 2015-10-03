@@ -215,7 +215,7 @@ class AxoCtl(object):
                 print "received keyreq even though conversation is already open"
             except:
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
-
+                log(a.state)
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip(),
@@ -234,5 +234,5 @@ class AxoCtl(object):
 
 
 def log(msg):
-    print msg
+    print str(msg)
     sys.stdout.flush()

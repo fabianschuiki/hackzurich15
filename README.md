@@ -4,12 +4,15 @@
 ## VirtualMachines:
 
 
-url: maxo0.cloudapp.net
-url: maxo1.cloudapp.net
+url: maxo0.cloudapp.net or 40.113.20.240<br>
+url: maxo1.cloudapp.net or 40.113.91.78<br>
 
-bn: azureuser
-pw: B77d795d
+bn: azureuser<br>
+pw: B77d795d<br>
 
+mailaddresses:
+maxo0: alice@40.113.20.240
+maxo1: bob@40.113.91.78
 
 ## Link collection
 

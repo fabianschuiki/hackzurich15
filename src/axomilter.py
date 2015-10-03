@@ -15,11 +15,11 @@ RQ_AXOMAIL = "[AXONAUT]"
 
 # Create our milter class with the forking mixin and the regular milter
 # protocol base classes
-class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
+class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
     def __init__(self, opts=0, protos=0):
         # We must init our parents here
         lm.MilterProtocol.__init__(self, opts, protos)
-        lm.ForkMixin.__init__(self)
+        lm.ThreadMixin.__init__(self)
         # You can initialize more stuff here
         self.m_header = []
         self.m_body = ""
@@ -174,7 +174,7 @@ def main():
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the
     # appropriate mixin classes for your milter for Thread and Fork)
     print("Setting up ForkFactory")
-    f = lm.ForkFactory('inet:127.0.0.1:5000', AxoMilter, opts)
+    f = lm.ThreadFactory('inet:127.0.0.1:5000', AxoMilter, opts)
     def sigHandler(num, frame):
         print "Good bye!"
         f.close()

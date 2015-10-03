@@ -9,7 +9,7 @@
 from pyaxo import Axolotl
 from contextlib import contextmanager
 from sendmail import sendmimemail, sendrawmail
-from email.mime.text import MIMEText
+from email.mime.text import MIMEText, MIMEMultipart
 import os
 import binascii
 import hashlib

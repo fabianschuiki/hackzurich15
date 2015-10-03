@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# DOC: https://pythonhosted.org/pymilter/namespaceMilter.html
+
 # Copyright 2013-2014 Paul Wouters <paul@cypherpunks.ca>
 #
 # Based on the pymilter example code
@@ -17,9 +19,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 
-VERSION = '0.4'
-ANCHOR = '/var/lib/unbound/root.anchor'
-OPENPGPKEY = 61
+VERSION = '0.1'
 
 import Milter
 import StringIO
@@ -33,20 +33,18 @@ from hashlib import sha224
 
 from socket import AF_INET6
 from Milter.utils import parse_addr
-if True:
-    from multiprocessing import Process as Thread, Queue
-else:
-    from threading import Thread
-    from Queue import Queue
+
+from multiprocessing import Process as Thread, Queue
+
 
 logq = Queue(maxsize=4)
 
 from syslog import syslog, openlog, LOG_MAIL
 try:
-    openlog('openpgpkey-milter', facility=LOG_MAIL)
+    openlog('milter', facility=LOG_MAIL)
 except:
     # for python 2.6
-    openlog('openpgpkey-milter', LOG_MAIL)
+    openlog('milter', LOG_MAIL)
 
 try:
     import setproctitle
@@ -125,7 +123,7 @@ class myMilter(Milter.Base):
 
   # #  def envrcpt(self, to, *str):
 
-    @Milter.noreply
+    @Milter.noreply # noreplay makes the MTA to assume CONTINUE before termination
     def envrcpt(self, to, *str):
         rcptinfo = (to, Milter.dictfromlist(str))
         self.R.append(rcptinfo)

@@ -111,7 +111,7 @@ class AxoCtl(object):
 				kreq_msg["From"] = my_id
 				kreq_msg["To"] = other_id
 				kreq_msg["Subject"] = "Axolotl Key Exchange"
-				sendmimemmail(kreq_msg)
+				#sendmimemmail(kreq_msg)
 
 				pickle.dump({
 					"state": a.state,

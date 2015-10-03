@@ -5,7 +5,7 @@
 import libmilter as lm
 import sys
 import time
-#from axoctl import *
+from axoctl import *
 
 HOST = "example.com"
 
@@ -114,14 +114,14 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             elif self.rq_axo:
                 self.log("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
-                #AxoCtl().process_outbound(mail)
+                AxoCtl().process_outbound(mail)
                 # axoctl.process_outbound(mail)
                 action = lm.DISCARD
             else:
                 self.log("AXONAUT - norq, encrypt it anyway")
                 # Encrypt it with less euphoria
                 # axoctl.process_outbound(mail)
-                #AxoCtl().process_outbound(mail)
+                AxoCtl().process_outbound(mail)
                 action = lm.DISCARD
         else:
             self.log("WHAT A TERRIBLE FAILURE :'(")

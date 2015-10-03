@@ -254,11 +254,12 @@ class AxoCtl(object):
                 self.err("invalid keyreq received: %s" % e)
                 return
 
-            a = self.makeAxolotl(my_id)
             try:
+                a = self.makeAxolotl(my_id)
                 a.loadState(my_id, other_id)
                 self.err("received keyreq event though already exchanged")
             except:
+                a = self.makeAxolotl(my_id)
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),

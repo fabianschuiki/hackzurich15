@@ -11,8 +11,8 @@ bn: azureuser<br>
 pw: B77d795d<br>
 
 mailaddresses:
-maxo0: alice@40.113.20.240
-maxo1: bob@40.113.91.78
+maxo0: alice@[40.113.20.240]<br>
+maxo1: bob@[40.113.91.78]<br>
 
 ## Link collection
 

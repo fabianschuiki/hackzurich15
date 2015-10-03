@@ -131,10 +131,10 @@ def extract_host(mail):
 
 
 def is_local(m_from, m_to):
-    print("Comparing %s to %s" % (m_from, HOST))
-    print("Comparing %s to %s" % (m_to, HOST))
     fhost = extract_host(m_from)
     thost = extract_host(m_to)
+    print("Comparing %s to %s" % (fhost, HOST))
+    print("Comparing %s to %s" % (thost, HOST))
     return fhost == HOST and thost == HOST
 
 

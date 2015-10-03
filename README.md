@@ -26,3 +26,10 @@ relay:
 - axolotl ratchet: https://github.com/trevp/axolotl/wiki
 - Open Whisper Systems blog post: https://whispersystems.org/blog/advanced-ratcheting/
 - Pond, similar stuff: https://github.com/agl/pond
+
+## Setup
+
+- `pip install pyaxo`
+- create `HOST` file in `src/`
+- configure postfix for milter, add `smtpd_milters = inet:localhost:5000` to `/etc/postfix/main.cf`
+

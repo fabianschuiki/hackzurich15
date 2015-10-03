@@ -130,7 +130,8 @@ class AxoCtl(object):
                 kreq_msg = MIMEText(out_mail_body)
                 kreq_msg["From"] = my_id
                 kreq_msg["To"] = other_id
-                kreq_msg["Subject"] = "Axolotl Key Exchange"
+                kreq_msg["Subject"] = "Axolotl Key Request"
+                kreq_msg["Content-Type"] = "message/x-axonaut+keyreq"
                 sendmimemail(kreq_msg)
 
                 pickle.dump({
@@ -161,6 +162,7 @@ class AxoCtl(object):
                     if not os.path.exists(queue_path):
                         os.makedirs(queue_path)
                     pickle.dump(in_mail, open(path, "w"))
+
 
     def process_inbound(self, in_mail):
         """
@@ -200,7 +202,7 @@ class AxoCtl(object):
 
             a.saveState();
 
-        elif content_type == "message/x-axonaut-keyreq":
+        elif content_type == "message/x-axonaut+keyreq":
             segments = in_mail["body"].split('\n')
             DHIs = segments[0]
             DHRs = segments[1]
@@ -217,8 +219,14 @@ class AxoCtl(object):
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip(),
                     binascii.b2a_base64(a.handshakePKey).strip())
-                # TODO: send return mail
-                print "would send keyrsp " + out_mail_body
+
+                print "send keyrsp " + out_mail_body
+	            krsp_msg = MIMEText(out_mail_body)
+                krsp_msg["From"] = my_id
+                krsp_msg["To"] = other_id
+                krsp_msg["Subject"] = "Axolotl Key Response"
+                krsp_msg["Content-Type"] = "message/x-axonaut+keyrsp"
+                sendmimemail(krsp_msg)
 
                 a.saveState()
 

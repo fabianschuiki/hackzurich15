@@ -55,9 +55,9 @@ class AxoCtl(object):
         self.db_path = self.data_dir + "/conversations.db"
         self.handshakes_dir = self.data_dir + "/handshakes"
         self.queues_dir = self.data_dir + "/queues"
-        self.logger = new_logger('axonaut',logging.DEBUG) if logger == None else logger
+        self.logger = new_logger('axonaut',logging.DEBUG) if logger is None else logger
 
-        dirs = [self.data_dir,self.handshakes_dir,self.queues_dir];
+        dirs = [self.data_dir, self.handshakes_dir, self.queues_dir];
         for d in dirs:
             ensure_dir(d)
 

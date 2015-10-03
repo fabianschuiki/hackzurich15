@@ -4,3 +4,16 @@ Host hackzh15
 	User ubuntu
 	IdentityFile ~/.ssh/id_hackzurich
 	IdentitiesOnly yes
+
+# Azure shizzle
+Host clown1
+	Hostname maxo0.cloudapp.net
+	User azureuser
+	IdentityFile ~/.ssh/id_hackzurich
+	IdentitiesOnly yes
+
+Host clown2
+	Hostname maxo1.cloudapp.net
+	User azureuser
+	IdentityFile ~/.ssh/id_hackzurich
+	IdentitiesOnly yes

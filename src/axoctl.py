@@ -124,7 +124,7 @@ class AxoCtl(object):
         self.logger.debug("message_id = %s" % in_mail["id"])
 
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
-        hskey_path = self.handshakes_dir + "/" + conv_hash
+        handshake_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
         if content_type != "message/x-axonaut":
@@ -138,20 +138,14 @@ class AxoCtl(object):
                 path = "%s/%04i" % (queue_path, i)
                 i = i + 1
 
-            if not os.path.exists(hskey_path):
+            if not os.path.exists(handshake_path):
                 self.logger.debug("sending keyreq to %s" % other_id)
                 a = self.makeAxolotl(my_id)
-                # hs = pickle.load(open(hskey_path, "r"))
-                # a.state         = hs["state"]
-                # a.handshakePKey = hs["pub"]
-                # a.handshakeKey  = hs["priv"]
-                # print hs
 
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip(),
                     binascii.b2a_base64(a.handshakePKey).strip())
-                self.logger.debug("would send keyreq %s" % out_mail_body)
 
                 self.logger.debug("queuing message %s" % in_mail["id"])
                 if not os.path.exists(queue_path):
@@ -169,7 +163,7 @@ class AxoCtl(object):
                     "state": a.state,
                     "pub": a.handshakePKey,
                     "priv": a.handshakeKey
-                }, open(hskey_path, "w"))
+                }, open(handshake_path, "w"))
 
             else:
                 try:
@@ -179,7 +173,7 @@ class AxoCtl(object):
                     a.saveState()
 
                 except:
-                    self.log("queuing message %s (key response pending)" % in_mail["id"])
+                    self.logger.info("queuing message %s (key response pending)" % in_mail["id"])
                     if not os.path.exists(queue_path):
                         os.makedirs(queue_path)
                     pickle.dump(in_mail, open(path, "w"))
@@ -192,7 +186,7 @@ class AxoCtl(object):
 
         my_id = in_mail["to"]
         other_id = in_mail["from"]
-        self.log("inbound mail from %s to %s" % (my_id, other_id))
+        self.logger.info("inbound mail from %s to %s" % (my_id, other_id))
 
         # Look for a content type header that indicates what to do with this
         # message.
@@ -208,7 +202,7 @@ class AxoCtl(object):
         self.logger.debug("message_id = %s" % in_mail["id"])
 
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
-        hskey_path = self.handshakes_dir + "/" + conv_hash
+        handshake_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
         # Encrypted messages need to be decrypted.
@@ -221,14 +215,19 @@ class AxoCtl(object):
             except Exception as e:
                 self.logger.exception("unable to decrypt message: %s" % e)
 
-                # TODO: Send response that decryption is not possible due to lack of
-                # established session.
+                # TODO: Send response that decryption is not possible due to
+                # lack of established session.
 
+
+        # If we receive a key response, we have initiated the key exchange and
+        # may now finish it with the information provided by our peer. To ensure
+        # secrecy, truncate the temporary pre-keys that were stored for the
+        # handshake to zero.
         elif content_type == "message/x-axonaut+keyrsp":
-            self.log("received keyrsp from %s" % other_id)
+            self.logger.debug("received keyrsp from %s" % other_id)
 
             a = self.makeAxolotl(my_id)
-            hs = pickle.load(open(hskey_path, "r"))
+            hs = pickle.load(open(handshake_path, "r"))
             a.state = hs["state"]
             a.handshakePKey = hs["pub"]
             a.handshakeKey = hs["priv"]
@@ -246,7 +245,13 @@ class AxoCtl(object):
                 shutil.rmtree(queue_path)
 
             a.saveState();
+            open(handshake_path, "w").truncate()
 
+
+        # If we receive a key request, we are able to finalize the key exchange
+        # and initialize the Axolotl state. In addition to that, we have to mark
+        # this combination of sender/receiver as established by touching the
+        # corresponding file in the handshakes directory.
         elif content_type == "message/x-axonaut+keyreq":
             try:
                 segments = in_mail["body"].split('\n')
@@ -278,5 +283,7 @@ class AxoCtl(object):
                 krsp_msg["Content-Type"] = "message/x-axonaut+keyrsp"
                 sendmimemail(krsp_msg, my_id, other_id)
                 a.saveState()
+
+                os.touch(handshake_path)
 
         return

@@ -3,5 +3,6 @@
 _*
 *~
 *.pyc
+*.log
 build
 axonaut

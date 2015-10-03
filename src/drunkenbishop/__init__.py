@@ -17,8 +17,8 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
 
     mail_template =     "Hello %(my_name)s,\n" + \
                         "\n" + \
-                        "Your e-mail conversation with %(other_id)s was encrypted via the awesome\n" + \
-                        "Axonaut e-mail encryption service. To verify the identity of %(other_name)s,\n" + \
+                        "Your e-mail conversation with %(other_id)s was encrypted via the awesome Axonaut e-mail " +\
+                        "encryption service. To verify the identity of %(other_name)s, " + \
                         "compare the following fingerprints with your partner.\n" + \
                         "\n" + \
                         "If they don't match you might be a victim to an active attack!\n"

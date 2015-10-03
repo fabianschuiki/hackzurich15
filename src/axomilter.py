@@ -90,24 +90,27 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         mail = {'from': self.m_from, 'to': self.m_header, 'headers': self.m_header, 'body': self.m_body}
         action = lm.DISCARD
         if is_local(self.m_from, self.m_to):
-            return lm.CONTINUE
+            self.log("LOCAL")
+            action = lm.CONTINUE
         elif is_inbound(self.m_from, self.m_to):
+            self.log("INBOUND")
             if self.is_axotype:
-                self.log("AXONAUT DECRYPT NAOW")
+                self.log("AXONAUT - decrypting")
                 # decrypt if axolotl
                 # plainmail = axoctl.process_inbound(mail)
                 self.replBody(plainmail['body'])
                 action = lm.CONTINUE
 
             else:
-                self.log("LEGACY MAIL")
+                self.log("LEGACY MAIL - forwarding")
                 action = lm.CONTINUE  # legacy mails?
         elif is_outbound(self.m_from, self.m_to):
+            self.log("OUTBOUND")
             if self.is_axotype:
-                self.log("AXONAUT OUTBOUND")
+                self.log("AXONAUT - nice, job already done, forward")
                 action = lm.CONTINUE
             else:
-                self.log("AXONAUT ENCRYPT")
+                self.log("AXONAUT - encrypt")
                 # Encrypt dat shit!
                 # cyphermail = axoctl.process_outbound(mail)
                 action = lm.DISCARD

@@ -244,8 +244,8 @@ class AxoCtl(object):
                 a.loadState(my_id, other_id)
                 self.decrypt_and_send_mail(in_mail, a)
                 a.saveState()
-            except Exception as e:
-                self.logger.exception("unable to decrypt message: %s" % e)
+            except:
+                self.logger.warning("unable to decrypt message: %s" % in_mail["id"])
 
                 msg = MIMEMultipart()
                 msg["Subject"] = "Message cannot be decrypted, return to sender"

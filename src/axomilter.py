@@ -2,13 +2,10 @@
 
 # Very Doc: https://stuffivelearned.org/doku.php?id=programming:python:python-libmilter
 
-import sys
-import os
-import argparse
 import libmilter as lm
-import sys, time
-
-import StringIO
+import sys
+import time
+from axoctl import AxoCtl
 
 HOST = "example.com"
 
@@ -18,11 +15,11 @@ RQ_AXOMAIL = "[AXONAUT]"
 
 # Create our milter class with the forking mixin and the regular milter
 # protocol base classes
-class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
+class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
     def __init__(self, opts=0, protos=0):
         # We must init our parents here
         lm.MilterProtocol.__init__(self, opts, protos)
-        lm.ForkMixin.__init__(self)
+        lm.ThreadMixin.__init__(self)
         # You can initialize more stuff here
         self.m_header = []
         self.m_body = ""
@@ -103,7 +100,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
                 self.log("AXONAUT - decrypting")
                 # decrypt if axolotl
                 # axoctl.process_inbound(mail)
-                self.replBody(plainmail['body'])
+                #self.replBody(plainmail['body'])
                 action = lm.CONTINUE
 
             else:
@@ -117,12 +114,16 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             elif self.rq_axo:
                 self.log("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
+                #AxoCtl().process_outbound(mail)
                 # axoctl.process_outbound(mail)
                 action = lm.DISCARD
             else:
                 self.log("AXONAUT - norq, encrypt it anyway")
                 # Encrypt it with less euphoria
                 # axoctl.process_outbound(mail)
+                yolo = AxoCtl()
+                #.process_outbound(mail)
+                action = lm.DISCARD
         else:
             self.log("WHAT A TERRIBLE FAILURE :'(")
 
@@ -164,7 +165,7 @@ def is_outbound(m_from, m_to):
 def main():
     import signal, traceback
     global HOST
-
+    print("Reading HOST file.")
     HOST = host()
     # We can set our milter opts here
     opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS | lm.SMFIF_CHGBODY
@@ -172,8 +173,8 @@ def main():
     # We initialize the factory we want to use (you can choose from an
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the
     # appropriate mixin classes for your milter for Thread and Fork)
-    f = lm.ForkFactory('inet:127.0.0.1:5000', AxoMilter, opts)
-
+    print("Setting up ForkFactory")
+    f = lm.ThreadFactory('inet:127.0.0.1:5000', AxoMilter, opts)
     def sigHandler(num, frame):
         print "Good bye!"
         f.close()
@@ -182,6 +183,8 @@ def main():
     signal.signal(signal.SIGINT, sigHandler)
     try:
         # run it
+        print("Starting now.")
+        sys.stdout.flush()
         f.run()
     except Exception, e:
         f.close()

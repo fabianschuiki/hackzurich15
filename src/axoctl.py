@@ -132,7 +132,7 @@ class AxoCtl(object):
                 kreq_msg["To"] = other_id
                 kreq_msg["Subject"] = "Axolotl Key Request"
                 kreq_msg["Content-Type"] = "message/x-axonaut+keyreq"
-                sendmimemail(kreq_msg)
+                sendmimemail(kreq_msg, my_id, other_id)
 
                 pickle.dump({
                     "state": a.state,
@@ -227,7 +227,7 @@ class AxoCtl(object):
                 krsp_msg["To"] = other_id
                 krsp_msg["Subject"] = "Axolotl Key Response"
                 krsp_msg["Content-Type"] = "message/x-axonaut+keyrsp"
-                sendmimemail(krsp_msg)
+                sendmimemail(krsp_msg, my_id, other_id)
                 a.saveState()
 
         return

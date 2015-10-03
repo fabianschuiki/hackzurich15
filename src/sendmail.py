@@ -1,15 +1,23 @@
 from subprocess import Popen, PIPE
 from email.mime.text import MIMEText
+import smtplib
 
 
 # u need dat: from email.mime.text import MIMEText
-def sendmimemail(mimetext):
+def sendmimemail(mimetext, from_addr, to_addr):
     # msg = MIMEText(mail['body'])
     # msg["From"] = mail['from']
     # msg["To"] = mail['to']
     # msg["Subject"] = mail['subject']
-    p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
-    p.communicate(mimetext.as_string())
+
+    # use the sendmail command
+    # p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
+    # p.communicate(mimetext.as_string())
+
+    # use the builtin facilities
+    s = smtplib.SMTP('localhost')
+    s.sendmail(from_addr, [to_addr], mimetext.as_string())
+    s.quit()
 
 
 def sendmail(sender, receiver, subject, body):

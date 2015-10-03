@@ -92,9 +92,9 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             plainmail = axoctl.dec(mail)
         elif is_inbound(self.m_from, self.m_to):
             action = lm.CONTINUE  # legacy mails
-        elif is_outbound(self.m_from,self.m_to) and is_axotype(self.m_header):
+        elif is_outbound(self.m_from, self.m_to) and is_axotype(self.m_header):
             action = lm.CONTINUE  # legacy mails
-        elif is_outbound(self.m_from,self.m_to) and not is_axotype(self.m_header):
+        elif is_outbound(self.m_from, self.m_to) and not is_axotype(self.m_header):
             # Encrypt dat shit!
             cyphermail = axoctl.enc(mail)
 

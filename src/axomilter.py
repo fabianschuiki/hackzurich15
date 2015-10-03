@@ -35,7 +35,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
     @lm.noReply
     def connect(self, hostname, family, ip, port, cmdDict):
         logger.debug('Connect from %s:%d (%s) with family: %s' % (ip, port,
-                                                              hostname, family))
+                                                                  hostname, family))
         return lm.CONTINUE
 
     @lm.noReply
@@ -90,6 +90,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         logger.debug('EOB')
         mail = {'from': self.m_from, 'to': self.m_to, 'headers': self.m_header, 'body': self.m_body}
         action = lm.DISCARD
+        # Mux mail, what is the appropriate action?
         if is_local(self.m_from, self.m_to):
             logger.info("LOCAL")
             action = lm.CONTINUE
@@ -135,6 +136,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         logger.debug('Close called. QID: %s' % self._qid)
 
 
+# Reads the HOST file, necessary to figure out if a mail is in- or outbound
 def host():
     with open('HOST', 'r') as content_file:
         hostname = content_file.read().strip()
@@ -193,6 +195,7 @@ def main():
         logger.exception("Whut just happenend?!? o.O")
         traceback.print_tb(sys.exc_traceback)
         sys.exit(3)
+
 
 logger = new_logger('milter', logging.DEBUG)
 

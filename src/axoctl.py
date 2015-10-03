@@ -47,7 +47,7 @@ class AxoCtl(object):
         From pyaxo repo.
         """
         # a = Axolotl(my_id, dbname=other_id+".db", dbpassphrase=self.dbpassphrase)
-        a = makeAxolotl()
+        a = self.makeAxolotl()
         try:
             a.loadState(my_id, other_id)
             yield a

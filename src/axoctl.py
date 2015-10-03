@@ -42,18 +42,6 @@ class AxoCtl(object):
 
     data_dir = "axonaut"
 
-
-    def log(self, msg):
-        t = time.strftime("%H:%M:%S")
-        sys.stdout.write("[%s] axoctl: %s\n" % (t, msg))
-        sys.stdout.flush()
-
-    def err(self, msg):
-        t = time.strftime("%H:%M:%S")
-        sys.stderr.write("[%s] axoctl: \033[31;1m*** error\033[0m %s\n" % (t, msg))
-        sys.stderr.flush()
-
-
     def makeAxolotl(self, my_id):
         return Axolotl(my_id, dbname=self.db_path, dbpassphrase=None)
 

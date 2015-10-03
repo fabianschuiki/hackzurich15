@@ -21,7 +21,8 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
                         "encryption service. To verify the identity of %(other_name)s, " + \
                         "compare the following fingerprints with your partner.\n" + \
                         "\n" + \
-                        "If they don't match you might be a victim to an active attack!\n"
+                        "They should match with the corresponding fingerprints we sent to $(other_name)s otherwise" +\
+                        " you might be a victim to an active attack!\n"
 
     mailtext = mail_template % {'my_name': my_name,'other_name': other_name, 'my_id': myid, 'other_id': otherid}
     # Append dat bishop

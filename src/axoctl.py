@@ -198,7 +198,7 @@ class AxoCtl(object):
 
             segments = in_mail["body"].split('\n')
             DHIs = binascii.a2b_base64(segments[0].strip())
-            DHRs = binascii.a2b_base64(segments[1].strip())
+            DHRs = binascii.a2b_base64(segments[1].strip()) if segments[1].strip() != "none" else None
             handshakePKey = binascii.a2b_base64(segments[2].strip())
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
@@ -228,7 +228,7 @@ class AxoCtl(object):
                 log(a.state)
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
-                    binascii.b2a_base64(a.state["DHRs"]).strip(),
+                    binascii.b2a_base64(a.state["DHRs"]).strip() if a.state["DHRs"] != None else "none",
                     binascii.b2a_base64(a.handshakePKey).strip())
 
                 print "send keyrsp " + out_mail_body

@@ -120,11 +120,14 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         self.log('Close called. QID: %s' % self._qid)
 
 
-
+def host():
+    with open('Path/to/file', 'r') as content_file:
+        hostname = content_file.read()
+    return hostname
 
 
 def extract_host(mail):
-    return mail.rsplit('@', 1)
+    return mail.rsplit('@', 1)[1]
 
 
 def is_local(m_from, m_to):
@@ -147,7 +150,9 @@ def is_outbound(m_from, m_to):
 
 def main():
     import signal, traceback
+    global HOST
 
+    HOST = host()
     # We can set our milter opts here
     opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS | lm.SMFIF_CHGBODY
 

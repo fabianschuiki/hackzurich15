@@ -21,7 +21,7 @@ HOST = "example.com"
 
 CT_AXOMAIL = "message/x-axonaut"
 RQ_AXOMAIL = "[AXONAUT]"
-
+RQ_OPTOUT = "[PLAIN]"
 
 # Create our milter class with the forking mixin and the regular milter
 # protocol base classes
@@ -46,6 +46,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
         self.m_to = ""
         self.is_axotype = False
         self.rq_axo = False
+        self.ign_axo = False
         logger.info(" ---- >8 ---- ")
 
     @lm.noReply
@@ -83,6 +84,9 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
 
         if key.lower() == "subject" and val.startswith(RQ_AXOMAIL):
             self.rq_axo = True
+
+        if key.lower() == "subject" and val.startswith(RQ_OPTOUT):
+            self.ign_axo = True
 
         return lm.CONTINUE
 
@@ -136,6 +140,9 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 AxoCtl(logger).process_outbound(mail)
                 # axoctl.process_outbound(mail)
                 action = lm.DISCARD
+            elif self.ign_axo:
+                logger.info("AXONAUT - axoign -> forward :(")
+                action = lm.CONTINUE
             else:
                 logger.info("AXONAUT - norq, encrypt it anyway")
                 # Encrypt it with less euphoria

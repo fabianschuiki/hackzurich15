@@ -122,7 +122,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 try:
                     AxoCtl(logger).process_inbound(mail)
                 except Exception as e:
-                    print("Error: %s" % e)
+                    logger.exception(e)
                     traceback.print_exc()
                 action = lm.DISCARD
 

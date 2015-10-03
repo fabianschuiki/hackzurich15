@@ -135,19 +135,21 @@ def is_local(m_from, m_to):
     thost = extract_host(m_to)
     print("Comparing %s to %s" % (fhost, HOST))
     print("Comparing %s to %s" % (thost, HOST))
-    return fhost == HOST and thost == HOST
+    return (fhost == HOST) and (thost == HOST)
 
 
 def is_inbound(m_from, m_to):
     fhost = extract_host(m_from)
     thost = extract_host(m_to)
-    return not fhost == HOST and thost == HOST
+    return (not (fhost == HOST)) and (thost == HOST)
 
 
 def is_outbound(m_from, m_to):
     fhost = extract_host(m_from)
     thost = extract_host(m_to)
-    return fhost == HOST and not thost == HOST
+    print("Comparing %s to %s" % (fhost, HOST))
+    print("Comparing %s to %s" % (thost, HOST))
+    return (fhost == HOST) and (not (thost == HOST))
 
 
 def main():

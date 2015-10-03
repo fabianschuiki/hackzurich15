@@ -1,5 +1,7 @@
 #!/usr/bin/python2.7
 
+""" Mail Filter (milter) to hook into an smtp server """
+
 # ====
 # HackZurich15
 # AxoMilter
@@ -7,10 +9,8 @@
 # ====
 
 # Very Doc: https://stuffivelearned.org/doku.php?id=programming:python:python-libmilter
-
 import libmilter as lm
 import sys
-import time
 from axoctl import AxoCtl
 import traceback
 

@@ -64,7 +64,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
 
     def eob(self, cmdDict):
         self.log('EOB')
-        self.replBody("DAT MAIL!")
+        self.replBody("MUHAHAHAHHA! DAT MAIL!")
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return lm.CONTINUE
 

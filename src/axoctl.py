@@ -185,7 +185,9 @@ class AxoCtl(object):
         my_id = in_mail["to"]
         other_id = in_mail["from"]
 
-        hskey_path = self.handshakes_dir + "/" + hashlib.sha1(my_id + ":" + other_id).hexdigest()
+        conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
+        hskey_path = self.handshakes_dir + "/" + conv_hash
+        queue_path = self.queues_dir + "/" + conv_hash
 
         if content_type == "message/x-axonaut+keyrsp":
             a = self.makeAxolotl(my_id)

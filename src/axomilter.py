@@ -8,6 +8,11 @@ import argparse
 import libmilter as lm
 import sys, time
 
+HOST = "example.com"
+
+CT_AXOMAIL = "message/x-axomail"
+
+
 # Create our milter class with the forking mixin and the regular milter
 # protocol base classes
 class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
@@ -16,6 +21,11 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         lm.MilterProtocol.__init__(self, opts, protos)
         lm.ForkMixin.__init__(self)
         # You can initialize more stuff here
+        self.m_header = {}
+        self.m_body = ""
+        self.m_from = ""
+        self.m_to = ""
+        self.m_subject = ""
 
     def log(self, msg):
         t = time.strftime('%H:%M:%S')
@@ -36,16 +46,23 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
     @lm.noReply
     def mailFrom(self, frAddr, cmdDict):
         self.log('MAIL: %s' % frAddr)
+        self.m_from = frAddr
         return lm.CONTINUE
 
     @lm.noReply
     def rcpt(self, recip, cmdDict):
         self.log('RCPT: %s' % recip)
+        self.m_to = recip
         return lm.CONTINUE
 
     @lm.noReply
     def header(self, key, val, cmdDict):
         self.log('%s: %s' % (key, val))
+        self.m_header[key] = val  # save em
+        if key == "Content-Type" and not val == "message/axonaut":  # does it compute?
+            # Encryyypt!
+            self.enc = True
+
         return lm.CONTINUE
 
     @lm.noReply
@@ -60,16 +77,62 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
     @lm.noReply
     def body(self, chunk, cmdDict):
         self.log('Body chunk: %d' % len(chunk))
+        # save stuff in memory :)
+        self.m_body += chunk;
         return lm.CONTINUE
 
     def eob(self, cmdDict):
         self.log('EOB')
-        self.replBody("MUHAHAHAHHA! DAT MAIL!")
+        mail = {'from': self.m_from, 'to': self.m_header, 'headers': self.m_header, 'body': self.m_body}
+        action = lm.DISCARD
+        if is_local(self.m_from, self.m_to):
+            return lm.CONTINUE
+        elif is_inbound(self.m_from, self.m_to) and self._header['Content-Type'].startswith(CT_AXOMAIL):
+            # decrypt if axolotl
+            plainmail = axoctl.dec(mail)
+        elif is_inbound(self.m_from, self.m_to):
+            action = lm.CONTINUE  # legacy mails
+        elif is_outbound(self.m_from,self.m_to) and is_axotype(self.m_header):
+            action = lm.CONTINUE  # legacy mails
+        elif is_outbound(self.m_from,self.m_to) and not is_axotype(self.m_header):
+            # Encrypt dat shit!
+            cyphermail = axoctl.enc(mail)
+
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
-        return lm.CONTINUE
+        return action
 
     def close(self):
         self.log('Close called. QID: %s' % self._qid)
+
+
+def is_axotype(headers):
+    return 'Content-Type' in headers and headers['Content-Type'].startswith(CT_AXOMAIL)
+
+
+def prependHeaders(mail):
+    content_type = mail['headers']['Content-Type']
+
+
+def extract_host(mail):
+    return mail.rsplit('@', 1)
+
+
+def is_local(m_from, m_to):
+    fhost = extract_host(m_from)
+    thost = extract_host(m_to)
+    return fhost == HOST and thost == HOST
+
+
+def is_inbound(m_from, m_to):
+    fhost = extract_host(m_from)
+    thost = extract_host(m_to)
+    return not fhost == HOST and thost == HOST
+
+
+def is_outbound(m_from, m_to):
+    fhost = extract_host(m_from)
+    thost = extract_host(m_to)
+    return fhost == HOST and not thost == HOST
 
 
 def main():
@@ -97,6 +160,7 @@ def main():
         print >> sys.stderr, 'EXCEPTION OCCURED: %s' % e
         traceback.print_tb(sys.exc_traceback)
         sys.exit(3)
+
 
 if __name__ == '__main__':
     main()

@@ -1,14 +1,24 @@
-
 from subprocess import Popen, PIPE
+from email.mime.text import MIMEText
+
 
 # u need dat: from email.mime.text import MIMEText
-def sendmail(mimetext):
+def sendmimemmail(mimetext):
     # msg = MIMEText(mail['body'])
     # msg["From"] = mail['from']
     # msg["To"] = mail['to']
     # msg["Subject"] = mail['subject']
     p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
     p.communicate(mimetext.as_string())
+
+
+def sendmail(sender, receiver, subject, body):
+    msg = MIMEText(body)
+    msg["From"] = sender
+    msg["To"] = receiver
+    msg["Subject"] = subject
+    p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
+    p.communicate(msg.as_string())
 
 
 def prependHeaders(aheader, abody):

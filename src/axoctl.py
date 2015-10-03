@@ -30,20 +30,14 @@ def ensure_dir(dir):
 
 class AxoCtl(object):
     """
-    Implements the Axolotl protocol for a milter for postfix.
-
-    All mail objects are dictionaries:
+    Implements the Axolotl protocol for a Postfix mail filter. Mail objects are
+    of the form:
     {
         "to": mail address of recipient
         "from": mail address of sender
-        "subject": subject of the mail message
         "headers": dict of other headers for the message
         "body": body of the message
     }
-
-    ToDo:
-    - implement queues for thread safety.
-    - implement local storage for storing mail during handshake phase
     """
 
     data_dir = "axonaut"
@@ -89,6 +83,32 @@ class AxoCtl(object):
         # Decrypt the message from the envelope and forward it.
         decoded = axolotl.decrypt(binascii.a2b_base64(mail["body"]))
         sendrawmail(decoded, mail["from"], mail["to"])
+
+
+    def send_fingerprint_mail(my_DHIs, my_id, other_DHIs, other_id):
+        self.logger.info("sending fingerprint to %s" % my_id)
+
+        my_segs    = my_id.split("@",1)
+        my_name    = my_segs[0]
+        my_host    = my_segs[1]
+        other_segs = other_id.split('@',1)
+        other_name = other_segs[0]
+        other_host = other_segs[1]
+
+        mfp = MIMEMultipart()
+        mfp["From"] = "mailadmin@%s" % my_host
+        mfp["To"] = my_id
+        mfp["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
+        mfp["Content-Type"] = "text/plain"
+        mfp.preamble = "Hello %(my_name)s,\n\nYour e-mail conversation with %(other_id)s was encrypted via the awesome Axonaut e-mail encryption service. To verify the identity of %(other_name)s, compare the following fingerprints with your partner.\n\nThey should match with the corresponding fingerprints we sent to %(other_name)s otherwise you might be a victim of an active attack!\n\nBest regards,\nyour friendly Axonauts\n" % {"my_name": my_name, "other_name": other_name, "other_id": other_id}
+
+        drunk = GetFPrintMail(my_DHIs, my_name, other_DHIs, other_name)
+        mtxt = MIMEText("<html><body><pre>%s</pre></body></html>" % drunk)
+        mtxt["Content-Type"] = "text/html"
+        mtxt["Content-Disposition"] = "inline"
+        mfp.attach(mtxt)
+
+        sendmimemail(mfp, mfp["From"], my_id)
 
 
     # Called for every message that arrives at the server bound for an external
@@ -248,8 +268,6 @@ class AxoCtl(object):
                 mret["Content-Type"] = "message/rfc822"
                 msg.attach(mret)
                 sendmimemail(msg, my_id, other_id)
-                # TODO: Send response that decryption is not possible due to
-                # lack of established session.
 
 
         # If we receive a key response, we have initiated the key exchange and
@@ -265,24 +283,16 @@ class AxoCtl(object):
             a.handshakePKey = hs["pub"]
             a.handshakeKey = hs["priv"]
 
-
             segments = in_mail["body"].split('\n')
             DHIs = binascii.a2b_base64(segments[0].strip())
             DHRs = binascii.a2b_base64(segments[1].strip()) if segments[1].strip() != "none" else None
             handshakePKey = binascii.a2b_base64(segments[2].strip())
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
-            # This part is simply informing the user on our end with the hashes of 
-            # both identity keys. These must be compared through a secure second
-            # channel of communication to ensure all security properties.
-            fprint_mail_body = GetFPrintMail(a.state['DHIs'], my_id, DHIs, other_id)
-            self.logger.info("sending key-fingerprint-mail to %s" % my_id)
-            fprint_msg = MIMEText(fprint_mail_body)
-            fprint_msg["From"] = "mailadmin@localhost"
-            fprint_msg["To"] = my_id
-            fprint_msg["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
-            fprint_msg["Content-Type"] = "text/plain"
-            sendmimemail(fprint_msg, "mailadmin@localhost", my_id)
+            # This part is simply informing the user on our end with the hashes
+            # of both identity keys. These must be compared through a secure
+            # second channel of communication to ensure all security properties.
+            self.send_fingerprint_mail(a.state['DHIs'], my_id, DHIs, other_id)
 
             if os.path.isdir(queue_path):
                 for d in os.listdir(queue_path):
@@ -318,17 +328,11 @@ class AxoCtl(object):
 
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
-                # This part is simply informing the user on our end with the hashes of 
-                # both identity keys. These must be compared through a secure second
-                # channel of communication to ensure all security properties.
-                fprint_mail_body = GetFPrintMail(a.state['DHIs'], my_id, DHIs, other_id)
-                self.logger.info("sending key-fingerprint-mail to %s" % my_id)
-                fprint_msg = MIMEText(fprint_mail_body)
-                fprint_msg["From"] = "mailadmin@localhost"
-                fprint_msg["To"] = my_id
-                fprint_msg["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
-                fprint_msg["Content-Type"] = "text/plain"
-                sendmimemail(fprint_msg, "mailadmin@localhost", my_id)
+                # This part is simply informing the user on our end with the
+                # hashes of both identity keys. These must be compared through a
+                # secure second channel of communication to ensure all security
+                # properties.
+                self.send_fingerprint_mail(a.state['DHIs'], my_id, DHIs, other_id)
 
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),

@@ -5,7 +5,7 @@
 import libmilter as lm
 import sys
 import time
-from axoctl import *
+from axoctl import AxoCtl
 
 HOST = "example.com"
 

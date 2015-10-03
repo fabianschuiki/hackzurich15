@@ -15,6 +15,7 @@ import binascii
 import hashlib
 import pickle
 import sys
+import shutil
 
 
 class AxoCtl(object):
@@ -71,8 +72,15 @@ class AxoCtl(object):
         if not os.path.exists(self.queues_dir):
             os.makedirs(self.queues_dir)
 
+
     def send_mail(self, mail):
-        print "would send mail %s" % mail
+        print "send mail %s" % mail
+        msg = MIMEText(mail["body"])
+        msg["Content-Type"] = "message/x-axonaut"
+        for k,v in mail["headers"]:
+            msg[k] = v
+        sendmimemail(msg, mail["from"], mail["to"])
+
 
     def process_outbound(self, in_mail):
         """
@@ -147,13 +155,8 @@ class AxoCtl(object):
                 try:
                     a = self.makeAxolotl(my_id)
                     a.loadState()
-                    print "Kung Fury approves of the existing session"
-
+                    print "Kung Fury approves of the existing session and dispatches your message"
                     self.send_mail(in_mail)
-                    if os.path.isdir(queue_path):
-                        for d in os.listdir(queue_path):
-                            self.send_mail(pickle.load(open(queue_path + "/" + d)))
-
                     a.saveState()
 
                 except:
@@ -198,6 +201,11 @@ class AxoCtl(object):
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
             # TODO: Flush the queue and encrypt all pending messages, like a sir
+            print "flushing the send queue"
+            if os.path.isdir(queue_path):
+                for d in os.listdir(queue_path):
+                    self.send_mail(pickle.load(open(queue_path + "/" + d)))
+                shutil.rmtree(queue_path)
 
             a.saveState();
 

@@ -2,7 +2,7 @@
 
 # ====
 # HackZurich15
-# Axomilter
+# AxoMilter
 # by T. Richner, F. Schuiki, M. Eppenberger
 # ====
 

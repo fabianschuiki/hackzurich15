@@ -28,11 +28,15 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
 
     mykey_lines = mykey_bishop.splitlines()
     otherkey_lines = otherkey_bishop.splitlines()
-    lines = zip(mykey_lines,otherkey_lines)
+
+    if my_name<other_name:
+        lines = zip(mykey_lines,otherkey_lines)
+    else:
+        lines = zip(otherkey_lines,mykey_lines)
 
     fingerprints = "\n"
-    for l1,l2 in lines:
-        fingerprints += ("%s %s\n" % (l1,l2))
+    for l1, l2 in lines:
+        fingerprints += (" %s   %s \n" % (l1, l2))
 
     mailtext += fingerprints
 

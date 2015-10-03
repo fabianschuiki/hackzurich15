@@ -99,9 +99,8 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
             if self.is_axotype:
                 self.log("AXONAUT - decrypting")
                 # decrypt if axolotl
-                # axoctl.process_inbound(mail)
-                #self.replBody(plainmail['body'])
-                action = lm.CONTINUE
+                AxoCtl().process_inbound(mail)
+                action = lm.DISCARD
 
             else:
                 self.log("LEGACY MAIL - forwarding")

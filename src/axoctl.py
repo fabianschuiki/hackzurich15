@@ -16,6 +16,7 @@ import hashlib
 import pickle
 import sys
 import shutil
+import time
 
 
 class AxoCtl(object):
@@ -38,25 +39,20 @@ class AxoCtl(object):
 
     data_dir = "axonaut"
 
+
+    def log(self, msg):
+        t = time.strftime("%H:%M:%S")
+        sys.stdout.write("[%s] axoctl: %s\n" % (t, msg))
+        sys.stdout.flush()
+
+    def err(self, msg):
+        t = time.strftime("%H:%M:%S")
+        sys.stderr.write("[%s] axoctl: *** \033[32merror\033[0m %s\n" % (t, msg))
+        sys.stderr.flush()
+
+
     def makeAxolotl(self, my_id):
         return Axolotl(my_id, dbname=self.db_path, dbpassphrase=None)
-
-    @contextmanager
-    def axo(self, my_id, other_id):
-        """
-        Access axolotl Database.
-
-        From pyaxo repo.
-        """
-        # a = Axolotl(my_id, dbname=other_id+".db", dbpassphrase=self.dbpassphrase)
-        a = self.makeAxolotl()
-        try:
-            a.loadState(my_id, other_id)
-            yield a
-            a.saveState()
-        except:
-            yield False
-            pass
 
     def __init__(self):
         super(AxoCtl, self).__init__()
@@ -73,14 +69,32 @@ class AxoCtl(object):
             os.makedirs(self.queues_dir)
 
 
-    def send_mail(self, mail):
-        print "send mail %s" % mail
+    def encrypt_and_send_mail(self, mail, axolotl):
+        self.log("encrypting message %s" % mail["id"])
+
+        # Assemble the message that we shall encrypt.
         msg = MIMEText(mail["body"])
         for k,v in mail["headers"]:
-            if k.lower() != "content-type":
-                msg[k] = v
-        msg["Content-Type"] = "message/x-axonaut"
-        sendmimemail(msg, mail["from"], mail["to"])
+            msg[k] = v
+        raw = msg.as_string()
+
+        # Encrypt the message and wrap it up in a new envelope, then send it to
+        # the recipient.
+        encoded = binascii.b2a_base64(raw)
+        menv = MIMEText(encoded)
+        menv["From"]         = mail["from"]
+        menv["To"]           = mail["to"]
+        menv["Subject"]      = "Axolotl-encrypted Message"
+        menv["Content-Type"] = "message/x-axonaut"
+        sendmimemail(menv, mail["from"], mail["to"])
+
+
+    def decrypt_and_send_mail(self, mail, axolotl):
+        self.log("decrypting message %s" % mail["id"])
+
+        # Decrypt the message from the envelope and forward it.
+        decoded = binascii.a2b_base64(mail["body"])
+        sendrawmail(decoded, mail["from"], mail["to"])
 
 
     def process_outbound(self, in_mail):
@@ -88,22 +102,27 @@ class AxoCtl(object):
         Function to encrypt an outgoing mail. Also makes a new key request if the partner key is not available.
         """
 
+        my_id = in_mail["from"]
+        other_id = in_mail["to"]
+        self.log("outbound mail from %s to %s" % (my_id, other_id))
+
         # Look for a content type header that indicates what to do with this
         # message.
         content_type = None
         for k, v in in_mail["headers"]:
-            if k.lower() == "content-type":
+            kl = k.lower()
+            if kl == "content-type":
                 content_type = v.lower()
-        print "content_type = %s" % content_type
-        sys.stdout.flush()
-        my_id = in_mail["from"]
-        other_id = in_mail["to"]
-        print "From %s to %s " % (my_id, other_id)
-        sys.stdout.flush()
+            if kl == "message-id":
+                in_mail["id"] = v
+
+        self.log("content_type = %s" % content_type)
+        self.log("message_id = %s" % in_mail["id"])
+
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
         hskey_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
-        print "hashed around a bit"
+
         if content_type != "message/x-axonaut":
             # If this is a message that we are supposed to encode, see whether we
             # already have an established session. If we don't, we need to negotiate
@@ -116,8 +135,8 @@ class AxoCtl(object):
                 i = i + 1
 
             if not os.path.exists(hskey_path):
+                self.log("sending keyreq to %s" % other_id)
                 a = self.makeAxolotl(my_id)
-                print "holy cow, we need to establish a session first"
                 # hs = pickle.load(open(hskey_path, "r"))
                 # a.state         = hs["state"]
                 # a.handshakePKey = hs["pub"]
@@ -128,10 +147,9 @@ class AxoCtl(object):
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip(),
                     binascii.b2a_base64(a.handshakePKey).strip())
-                # TODO: send mail and push this message into the queue.
                 print "would send keyreq " + out_mail_body
 
-                print "queueing message"
+                self.log("queuing message %s" % in_mail["id"])
                 if not os.path.exists(queue_path):
                     os.makedirs(queue_path)
                 pickle.dump(in_mail, open(path, "w"))
@@ -148,58 +166,63 @@ class AxoCtl(object):
                     "pub": a.handshakePKey,
                     "priv": a.handshakeKey
                 }, open(hskey_path, "w"))
+
             else:
-                # TODO: try to load the Axolotl state from the database. If it
-                # fails, push the message into the queue as well. If the state
-                # exists, encrypt and magic shall ensue.
-                # if axo.loadState(in_mail["from"], in_mail["to"]) == False:
                 try:
                     a = self.makeAxolotl(my_id)
                     a.loadState()
-                    print "Kung Fury approves of the existing session and dispatches your message"
-                    self.send_mail(in_mail)
+                    self.encrypt_and_send_mail(in_mail, a)
                     a.saveState()
 
                 except:
-                    print "Kung Fury does not approve, still no session"
-                    print "queueing message"
+                    self.log("queuing message %s (key response pending)" % in_mail["id"])
                     if not os.path.exists(queue_path):
                         os.makedirs(queue_path)
                     pickle.dump(in_mail, open(path, "w"))
+
 
     def process_inbound(self, in_mail):
         """
         Function to decrypt an incoming mail. Responds to a key request if necessary.
         """
 
+        my_id = in_mail["to"]
+        other_id = in_mail["from"]
+        self.log("inbound mail from %s to %s" % (my_id, other_id))
+
         # Look for a content type header that indicates what to do with this
         # message.
         content_type = None
         for k, v in in_mail["headers"]:
-            if k.lower() == "content-type":
+            kl = k.lower()
+            if kl == "content-type":
                 content_type = v.lower()
+            if kl == "message-id":
+                in_mail["id"] = v
 
-        print "content_type = %s" % content_type
-        print "Got: %s" % in_mail
-        sys.stdout.flush()
-
-        my_id = in_mail["to"]
-        other_id = in_mail["from"]
+        self.log("content_type = %s" % content_type)
+        self.log("message_id = %s" % in_mail["id"])
 
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
         hskey_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
+        # Encrypted messages need to be decrypted.
         if content_type == "message/x-axonaut":
-            print "decrypting message"
-            msg = MIMEText(in_mail["body"])
-            for k,v in in_mail["headers"]:
-                if k.lower() != "content-type":
-                    msg[k] = v
-            msg["Content-Type"] = "text/plain"
-            sendmimemail(msg, in_mail["from"], in_mail["to"])
+            try:
+                a = self.makeAxolotl(my_id)
+                a.loadState(other_id)
+                self.decrypt_and_send_mail(in_mail, a)
+                a.saveState()
+            except Exception as e:
+                self.err("unable to decrypt message: %s" % e)
+
+                # TODO: Send response that decryption is not possible due to lack of
+                # established session.
 
         elif content_type == "message/x-axonaut+keyrsp":
+            self.log("received keyrsp from %s" % other_id)
+
             a = self.makeAxolotl(my_id)
             hs = pickle.load(open(hskey_path, "r"))
             a.state = hs["state"]
@@ -212,27 +235,29 @@ class AxoCtl(object):
             handshakePKey = binascii.a2b_base64(segments[2].strip())
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
-            # TODO: Flush the queue and encrypt all pending messages, like a sir
-            print "flushing the send queue"
             if os.path.isdir(queue_path):
                 for d in os.listdir(queue_path):
-                    self.send_mail(pickle.load(open(queue_path + "/" + d)))
+                    msg = pickle.load(open(queue_path+"/"+d))
+                    self.encrypt_and_send_mail(msg, a)
                 shutil.rmtree(queue_path)
 
             a.saveState();
 
         elif content_type == "message/x-axonaut+keyreq":
-            log("KEYRQ")
-
-            segments = in_mail["body"].split('\n')
-            DHIs = binascii.a2b_base64(segments[0].strip())
-            DHRs = binascii.a2b_base64(segments[1].strip())
-            handshakePKey = binascii.a2b_base64(segments[2].strip())
+            try:
+                segments = in_mail["body"].split('\n')
+                DHIs = binascii.a2b_base64(segments[0].strip())
+                DHRs = binascii.a2b_base64(segments[1].strip())
+                handshakePKey = binascii.a2b_base64(segments[2].strip())
+                self.log("received keyreq from %s" % other_id)
+            except Exception as e:
+                self.err("invalid keyreq received: %s" % e)
+                return
 
             a = self.makeAxolotl(my_id)
             try:
                 a.loadState()
-                print "received keyreq even though conversation is already open"
+                self.err("received keyreq event though already exchanged")
             except:
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
                 log(a.state)
@@ -241,7 +266,7 @@ class AxoCtl(object):
                     binascii.b2a_base64(a.state["DHRs"]).strip() if a.state["DHRs"] != None else "none",
                     binascii.b2a_base64(a.handshakePKey).strip())
 
-                print "send keyrsp " + out_mail_body
+                self.log("sending keyrsp to %s" % other_id)
                 krsp_msg = MIMEText(out_mail_body)
                 krsp_msg["From"] = my_id
                 krsp_msg["To"] = other_id
@@ -251,8 +276,3 @@ class AxoCtl(object):
                 a.saveState()
 
         return
-
-
-def log(msg):
-    print str(msg)
-    sys.stdout.flush()

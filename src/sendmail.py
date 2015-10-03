@@ -20,6 +20,12 @@ def sendmimemail(mimetext, from_addr, to_addr):
     s.quit()
 
 
+def sendrawmail(rawtext, from_addr, to_addr):
+    s = smtplib.SMTP('localhost')
+    s.sendmail(from_addr, [to_addr], rawtext)
+    s.quit()
+
+
 def sendmail(sender, receiver, subject, body):
     msg = MIMEText(body)
     msg["From"] = sender

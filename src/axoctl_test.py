@@ -7,7 +7,8 @@ out_mail = ac.process_outbound({
 	"from": "ddoebeli@ethz.ch",
 	"headers": [
 		("Subject", "Exmatrikulation"),
-		("Content-Type", "text/plain")
+		("Content-Type", "text/plain"),
+		("Message-Id", "abaoij4te4utjsdrg8hs4e"),
 	],
 	"body": "Shake that thing"
 })

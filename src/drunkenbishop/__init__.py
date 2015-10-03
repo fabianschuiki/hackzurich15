@@ -16,9 +16,9 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
     mailtext = ("""Hello %s
     Your e-mail conversation with %s was encrypted via the Axonaut e-mail
     encryption service. To guarantee the security of your messages, compare
-    the following hashes with your partner %s.
-    If the keys do not match, it is likely that your are victim of a 
-    Man-in-the-Middle attack.
+    the following hashes with your partner %s through a secure second
+    channel. If the keys do not match, it is likely that your are victim of
+    a Man-in-the-Middle attack.
 
     Hash of your key:
     %s

@@ -29,6 +29,7 @@ def ensure_dir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+
 class AxoCtl(object):
     """
     Implements the Axolotl protocol for a Postfix mail filter. Mail objects are
@@ -52,7 +53,7 @@ class AxoCtl(object):
         self.db_path = self.data_dir + "/conversations.db"
         self.handshakes_dir = self.data_dir + "/handshakes"
         self.queues_dir = self.data_dir + "/queues"
-        self.logger = new_logger('axonaut',logging.DEBUG) if logger is None else logger
+        self.logger = new_logger('axonaut', logging.DEBUG) if logger is None else logger
 
         dirs = [self.data_dir, self.handshakes_dir, self.queues_dir];
         for d in dirs:
@@ -63,7 +64,7 @@ class AxoCtl(object):
 
         # Assemble the message that we shall encrypt.
         msg = MIMEText(mail["body"])
-        for k,v in mail["headers"]:
+        for k, v in mail["headers"]:
             msg[k] = v
         raw = msg.as_string()
 
@@ -71,12 +72,11 @@ class AxoCtl(object):
         # the recipient.
         encoded = binascii.b2a_base64(axolotl.encrypt(raw))
         menv = MIMEText(encoded)
-        menv["From"]         = mail["from"]
-        menv["To"]           = mail["to"]
-        menv["Subject"]      = "Axolotl-encrypted Message"
+        menv["From"] = mail["from"]
+        menv["To"] = mail["to"]
+        menv["Subject"] = "Axolotl-encrypted Message"
         menv["Content-Type"] = "message/x-axonaut"
         sendmimemail(menv, mail["from"], mail["to"])
-
 
     def decrypt_and_send_mail(self, mail, axolotl):
         self.logger.info("decrypting message %s" % mail["id"])
@@ -85,14 +85,13 @@ class AxoCtl(object):
         decoded = axolotl.decrypt(binascii.a2b_base64(mail["body"]))
         sendrawmail(decoded, mail["from"], mail["to"])
 
-
     def send_fingerprint_mail(self, my_DHIs, my_id, other_DHIs, other_id):
         self.logger.info("sending fingerprint to %s" % my_id)
 
-        my_segs    = my_id.split("@",1)
-        my_name    = my_segs[0]
-        my_host    = my_segs[1]
-        other_segs = other_id.split('@',1)
+        my_segs = my_id.split("@", 1)
+        my_name = my_segs[0]
+        my_host = my_segs[1]
+        other_segs = other_id.split('@', 1)
         other_name = other_segs[0]
         other_host = other_segs[1]
 
@@ -111,7 +110,6 @@ class AxoCtl(object):
         mfp.attach(part_msg)
         mfp.attach(part_fp)
         sendmimemail(mfp, mfp["From"], my_id)
-
 
     # Called for every message that arrives at the server bound for an external
     # recipient.
@@ -213,7 +211,6 @@ class AxoCtl(object):
                         os.makedirs(queue_path)
                     pickle.dump(in_mail, open(path, "w"))
 
-
     # Called for every message arriving at the server that is bound for a local
     # recipient.
     def process_inbound(self, in_mail):
@@ -267,8 +264,8 @@ class AxoCtl(object):
                 msg_txt = MIMEText("The attached message was received by the sender, but cannot be decrypted. This indicates that no secure Axolotl conversation has been established beforehand.", "plain")
                 msg_txt["Content-Disposition"] = "inline"
 
-                raw_msg = MIMEText(mail["body"])
-                for k,v in mail["headers"]:
+                raw_msg = MIMEText(in_mail["body"])
+                for k, v in in_mail["headers"]:
                     raw_msg[k] = v
                 raw = raw_msg.as_string()
                 mret = MIMEText(raw)
@@ -305,7 +302,7 @@ class AxoCtl(object):
 
             if os.path.isdir(queue_path):
                 for d in os.listdir(queue_path):
-                    msg = pickle.load(open(queue_path+"/"+d))
+                    msg = pickle.load(open(queue_path + "/" + d))
                     self.encrypt_and_send_mail(msg, a)
                 shutil.rmtree(queue_path)
 

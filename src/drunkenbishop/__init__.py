@@ -13,7 +13,7 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
     otherkey_bishop = str(Fingerprint(otherkey_hash_list, otherid.split("@")[0], "SHA256"))
 
 
-    mailtext = ("""Hello %s
+    mailtext = """Hello %s
     Your e-mail conversation with %s was encrypted via the Axonaut e-mail
     encryption service. To guarantee the security of your messages, compare
     the following hashes with your partner %s through a secure second
@@ -24,6 +24,6 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
     %s
 
     Hash of your partners key
-    %s""" % myid, otherid, otherid, mykey_bishop, otherkey_bishop)
+    %s""" % (myid, otherid, otherid, mykey_bishop, otherkey_bishop)
 
     return mailtext

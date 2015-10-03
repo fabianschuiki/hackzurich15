@@ -171,9 +171,11 @@ class AxoCtl(object):
             if k.lower() == "content-type":
                 content_type = v.lower()
         print "content_type = %s" % content_type
+        print "Got: %s" % in_mail
 
         my_id = in_mail["to"]
         other_id = in_mail["from"]
+
         hskey_path = self.handshakes_dir + "/" + hashlib.sha1(my_id + ":" + other_id).hexdigest()
 
         if content_type == "message/x-axonaut+keyrsp":

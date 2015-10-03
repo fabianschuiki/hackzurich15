@@ -8,9 +8,11 @@ import argparse
 import libmilter as lm
 import sys, time
 
+import StringIO
+
 HOST = "example.com"
 
-CT_AXOMAIL = "message/x-axomail"
+CT_AXOMAIL = "message/x-axonaut"
 
 
 # Create our milter class with the forking mixin and the regular milter
@@ -21,11 +23,11 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         lm.MilterProtocol.__init__(self, opts, protos)
         lm.ForkMixin.__init__(self)
         # You can initialize more stuff here
-        self.m_header = {}
+        self.m_header = []
         self.m_body = ""
         self.m_from = ""
         self.m_to = ""
-        self.m_subject = ""
+        self.is_axotype = False
 
     def log(self, msg):
         t = time.strftime('%H:%M:%S')
@@ -58,10 +60,12 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
     @lm.noReply
     def header(self, key, val, cmdDict):
         self.log('%s: %s' % (key, val))
-        self.m_header[key] = val  # save em
-        if key == "Content-Type" and not val == "message/axonaut":  # does it compute?
-            # Encryyypt!
-            self.enc = True
+
+        # save dat headers
+        self.m_header.append((key, val))
+
+        if key.lower() == "content-type" and val.startswith(CT_AXOMAIL):
+            self.is_axotype = True
 
         return lm.CONTINUE
 
@@ -87,16 +91,21 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         action = lm.DISCARD
         if is_local(self.m_from, self.m_to):
             return lm.CONTINUE
-        elif is_inbound(self.m_from, self.m_to) and self._header['Content-Type'].startswith(CT_AXOMAIL):
-            # decrypt if axolotl
-            plainmail = axoctl.dec(mail)
         elif is_inbound(self.m_from, self.m_to):
-            action = lm.CONTINUE  # legacy mails
-        elif is_outbound(self.m_from, self.m_to) and is_axotype(self.m_header):
-            action = lm.CONTINUE  # legacy mails
-        elif is_outbound(self.m_from, self.m_to) and not is_axotype(self.m_header):
-            # Encrypt dat shit!
-            cyphermail = axoctl.enc(mail)
+            if self.is_axotype:
+                # decrypt if axolotl
+                plainmail = axoctl.process_inbound(mail)
+                self.replBody(plainmail['body'])
+                action = lm.CONTINUE
+            else:
+                action = lm.CONTINUE  # legacy mails?
+        elif is_outbound(self.m_from, self.m_to) and self.is_axotype:
+            if self.is_axotype:
+                action = lm.CONTINUE
+            else:
+                # Encrypt dat shit!
+                cyphermail = axoctl.process_outbound(mail)
+                action = lm.DISCARD
 
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return action
@@ -105,12 +114,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
         self.log('Close called. QID: %s' % self._qid)
 
 
-def is_axotype(headers):
-    return 'Content-Type' in headers and headers['Content-Type'].startswith(CT_AXOMAIL)
 
-
-def prependHeaders(mail):
-    content_type = mail['headers']['Content-Type']
 
 
 def extract_host(mail):

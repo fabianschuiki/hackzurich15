@@ -57,13 +57,13 @@ class AxoCtl(object):
     def makeAxolotl(self, my_id):
         return Axolotl(my_id, dbname=self.db_path, dbpassphrase=None)
 
-    def __init__(self):
+    def __init__(self, logger=None):
         super(AxoCtl, self).__init__()
 
         self.db_path = self.data_dir + "/conversations.db"
         self.handshakes_dir = self.data_dir + "/handshakes"
         self.queues_dir = self.data_dir + "/queues"
-        self.logger = new_logger('axonaut',logging.DEBUG)
+        self.logger = new_logger('axonaut',logging.DEBUG) if logger == None else logger
 
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
@@ -84,7 +84,7 @@ class AxoCtl(object):
 
         # Encrypt the message and wrap it up in a new envelope, then send it to
         # the recipient.
-        encoded = binascii.b2a_base64(raw)
+        encoded = binascii.b2a_base64(axolotl.encrypt(raw))
         menv = MIMEText(encoded)
         menv["From"]         = mail["from"]
         menv["To"]           = mail["to"]
@@ -97,7 +97,7 @@ class AxoCtl(object):
         self.logger.info("decrypting message %s" % mail["id"])
 
         # Decrypt the message from the envelope and forward it.
-        decoded = binascii.a2b_base64(mail["body"])
+        decoded = axolotl.decrypt(binascii.a2b_base64(mail["body"]))
         sendrawmail(decoded, mail["from"], mail["to"])
 
 

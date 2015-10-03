@@ -192,9 +192,9 @@ class AxoCtl(object):
             a.handshakeKey = hs["priv"]
 
             segments = in_mail["body"].split('\n')
-            DHIs = a2b_base64(segments[0].strip())
-            DHRs = a2b_base64(segments[1].strip())
-            handshakePKey = a2b_base64(segments[2].strip())
+            DHIs = binascii.a2b_base64(segments[0].strip())
+            DHRs = binascii.a2b_base64(segments[1].strip())
+            handshakePKey = binascii.a2b_base64(segments[2].strip())
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
 
             # TODO: Flush the queue and encrypt all pending messages, like a sir
@@ -205,9 +205,9 @@ class AxoCtl(object):
             log("KEYRQ")
 
             segments = in_mail["body"].split('\n')
-            DHIs = a2b_base64(segments[0].strip())
-            DHRs = a2b_base64(segments[1].strip())
-            handshakePKey = a2b_base64(segments[2].strip())
+            DHIs = binascii.a2b_base64(segments[0].strip())
+            DHRs = binascii.a2b_base64(segments[1].strip())
+            handshakePKey = binascii.a2b_base64(segments[2].strip())
 
             a = self.makeAxolotl(my_id)
             try:

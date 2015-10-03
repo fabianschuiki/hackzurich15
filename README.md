@@ -4,9 +4,9 @@
 ## VirtualMachines:
 
 
-url Alice: maxo0.cloudapp.net or 40.113.20.240<br>
-url Bob: maxo1.cloudapp.net or 40.113.91.78<br>
-url Relay: maxorelay.cloudapp.net or 40.78.159.248<br>
+url Alice: maxo0.cloudapp.net or 40.113.12.166<br>
+url Bob: maxo1.cloudapp.net or 40.113.12.78<br>
+url Relay: maxorelay.cloudapp.net or 40.122.174.29<br>
 
 bn: azureuser<br>
 pw: B77d795d<br>

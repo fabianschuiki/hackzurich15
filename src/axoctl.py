@@ -21,6 +21,8 @@ import time
 from log import new_logger
 import logging
 
+from drunkenbishop import GetFPrintMail
+
 
 class AxoCtl(object):
     """
@@ -263,11 +265,24 @@ class AxoCtl(object):
             a.handshakePKey = hs["pub"]
             a.handshakeKey = hs["priv"]
 
+
             segments = in_mail["body"].split('\n')
             DHIs = binascii.a2b_base64(segments[0].strip())
             DHRs = binascii.a2b_base64(segments[1].strip()) if segments[1].strip() != "none" else None
             handshakePKey = binascii.a2b_base64(segments[2].strip())
             a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
+
+            # This part is simply informing the user on our end with the hashes of 
+            # both identity keys. These must be compared through a secure second
+            # channel of communication to ensure all security properties.
+            fprint_mail_body = GetFPrintMail(a.state['DHIs'], my_id, DHIs, other_id)
+            self.logger.info("sending key-fingerprint-mail to %s" % my_id)
+            fprint_msg = MIMEText(fprint_mail_body)
+            fprint_msg["From"] = "mailadmin@localhost"
+            fprint_msg["To"] = my_id
+            fprint_msg["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
+            fprint_msg["Content-Type"] = "text/plain"
+            sendmimemail(fprint_msg, "mailadmin@localhost", my_id)
 
             if os.path.isdir(queue_path):
                 for d in os.listdir(queue_path):
@@ -300,7 +315,21 @@ class AxoCtl(object):
                 self.logger.warning("received keyreq event though already exchanged")
             except:
                 a = self.makeAxolotl(my_id)
+
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
+
+                # This part is simply informing the user on our end with the hashes of 
+                # both identity keys. These must be compared through a secure second
+                # channel of communication to ensure all security properties.
+                fprint_mail_body = GetFPrintMail(a.state['DHIs'], my_id, DHIs, other_id)
+                self.logger.info("sending key-fingerprint-mail to %s" % my_id)
+                fprint_msg = MIMEText(fprint_mail_body)
+                fprint_msg["From"] = "mailadmin@localhost"
+                fprint_msg["To"] = my_id
+                fprint_msg["Subject"] = "Axonaut Key-Fingerprints for %s" % other_id
+                fprint_msg["Content-Type"] = "text/plain"
+                sendmimemail(fprint_msg, "mailadmin@localhost", my_id)
+
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip() if a.state["DHRs"] != None else "none",

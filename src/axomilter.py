@@ -1,5 +1,11 @@
 #!/usr/bin/python2.7
 
+# ====
+# HackZurich15
+# Axomilter
+# by T. Richner, F. Schuiki, M. Eppenberger
+# ====
+
 # Very Doc: https://stuffivelearned.org/doku.php?id=programming:python:python-libmilter
 
 import libmilter as lm
@@ -20,6 +26,15 @@ RQ_AXOMAIL = "[AXONAUT]"
 # Create our milter class with the forking mixin and the regular milter
 # protocol base classes
 class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
+    """
+    Implements a milter (mail filter) to support transparent
+    first MTA to last MTA encryption. This uses the axolotl security protocol,
+    which has nice security properties such as:
+    - Perfect Forward Secrecy (PFS)
+    - plausible deniability
+    - confidentiality, (authenticity/integrity)
+    """
+
     def __init__(self, opts=0, protos=0):
         # We must init our parents here
         lm.MilterProtocol.__init__(self, opts, protos)

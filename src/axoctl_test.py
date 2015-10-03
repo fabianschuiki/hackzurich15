@@ -2,12 +2,12 @@
 from axoctl import *
 
 ac = AxoCtl()
-out_mail = ac.process_inbound({
+out_mail = ac.process_outbound({
 	"to": "fschuiki@ethz.ch",
 	"from": "ddoebeli@ethz.ch",
 	"headers": [
 		("Subject", "Exmatrikulation"),
-		("Content-Type", "message/x-axonaut")
+		("Content-Type", "text/plain")
 	],
 	"body": "Shake that thing"
 })

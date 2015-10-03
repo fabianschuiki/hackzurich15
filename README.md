@@ -27,6 +27,8 @@ relay:
 - Open Whisper Systems blog post: https://whispersystems.org/blog/advanced-ratcheting/
 - Pond, similar stuff: https://github.com/agl/pond
 
+- pyaxo, axolotl implementation in python: https://github.com/rxcomm/pyaxo
+
 ## Setup
 
 - `pip install pyaxo`

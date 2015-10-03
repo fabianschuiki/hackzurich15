@@ -137,8 +137,11 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
             elif self.rq_axo:
                 logger.info("AXONAUT - axorq -> encrypt!")
                 # Encrypt dat shit!
-                AxoCtl(logger).process_outbound(mail)
-                # axoctl.process_outbound(mail)
+                try:
+                    AxoCtl(logger).process_outbound(mail)
+                except Exception as e:
+                    logger.exception(e)
+                    traceback.print_exc()
                 action = lm.DISCARD
             elif self.ign_axo:
                 logger.info("AXONAUT - axoign -> forward :(")
@@ -147,7 +150,11 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
                 logger.info("AXONAUT - norq, encrypt it anyway")
                 # Encrypt it with less euphoria
                 # axoctl.process_outbound(mail)
-                AxoCtl(logger).process_outbound(mail)
+                try:
+                    AxoCtl(logger).process_outbound(mail)
+                except Exception as e:
+                    logger.exception(e)
+                    traceback.print_exc()
                 action = lm.DISCARD
         else:
             logger.error("WHAT A TERRIBLE FAILURE :'(")

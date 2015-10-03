@@ -260,7 +260,6 @@ class AxoCtl(object):
                 self.err("received keyreq event though already exchanged")
             except:
                 a.initState(other_id, DHIs, handshakePKey, DHRs, verify=False)
-                log(a.state)
                 out_mail_body = "%s\n%s\n%s" % (
                     binascii.b2a_base64(a.state["DHIs"]).strip(),
                     binascii.b2a_base64(a.state["DHRs"]).strip() if a.state["DHRs"] != None else "none",

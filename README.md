@@ -16,6 +16,9 @@ maxo1: bob@[40.113.91.78]
 
 ## Link collection
 
+- pymilter: https://pythonhosted.org/milter/
+- pymilter doc: https://pythonhosted.org/pymilter/namespaceMilter.html
+
 - axolotl ratchet in Go: https://github.com/janimo/textsecure
 - axolotl ratchet: https://github.com/trevp/axolotl/wiki
 - Open Whisper Systems blog post: https://whispersystems.org/blog/advanced-ratcheting/

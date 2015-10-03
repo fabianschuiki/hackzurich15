@@ -24,6 +24,10 @@ import logging
 from drunkenbishop import GetFPrintMail
 
 
+def ensure_dir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
 class AxoCtl(object):
     """
     Implements the Axolotl protocol for a milter for postfix.
@@ -53,15 +57,11 @@ class AxoCtl(object):
         self.db_path = self.data_dir + "/conversations.db"
         self.handshakes_dir = self.data_dir + "/handshakes"
         self.queues_dir = self.data_dir + "/queues"
-        self.logger = new_logger('axonaut',logging.DEBUG) if logger == None else logger
+        self.logger = new_logger('axonaut',logging.DEBUG) if logger is None else logger
 
-        if not os.path.exists(self.data_dir):
-            os.makedirs(self.data_dir)
-        if not os.path.exists(self.handshakes_dir):
-            os.makedirs(self.handshakes_dir)
-        if not os.path.exists(self.queues_dir):
-            os.makedirs(self.queues_dir)
-
+        dirs = [self.data_dir, self.handshakes_dir, self.queues_dir];
+        for d in dirs:
+            ensure_dir(d)
 
     def encrypt_and_send_mail(self, mail, axolotl):
         self.logger.info("encrypting message %s" % mail["id"])

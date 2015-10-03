@@ -228,33 +228,4 @@ class AxoCtl(object):
                 sendmimemail(krsp_msg)
                 a.saveState()
 
-    return
-
-    contenttype = in_mail["contenttype"]
-    if contenttype.lower() == "message/x-axonaut":
-        """
-        Regular encrypted mail incoming
-
-        Decrypt with available state and relay.
-        """
-        pass
-
-    elif contenttype.lower() == "message/x-axonaut-keyreq":
-        """
-        Open own state.
-        Respond with own DH part.
-        Incorporate sendes state to own.
-        """
-        pass
-
-    elif contenttype.lower() == "message/x-axonaut-keyrsp":
-        """
-        Should never happen.
-        """
-        pass
-
-    else:
-        """
-        No axolotl mail received. something is wrong
-        """
-        pass
+        return

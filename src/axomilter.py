@@ -89,7 +89,7 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
 
     def eob(self, cmdDict):
         self.log('EOB')
-        mail = {'from': self.m_from, 'to': self.m_header, 'headers': self.m_header, 'body': self.m_body}
+        mail = {'from': self.m_from, 'to': self.m_to, 'headers': self.m_header, 'body': self.m_body}
         action = lm.DISCARD
         if is_local(self.m_from, self.m_to):
             self.log("LOCAL")

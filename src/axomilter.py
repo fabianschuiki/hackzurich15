@@ -93,23 +93,24 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             return lm.CONTINUE
         elif is_inbound(self.m_from, self.m_to):
             if self.is_axotype:
+                self.log("AXONAUT DECRYPT NAOW")
                 # decrypt if axolotl
-                #plainmail = axoctl.process_inbound(mail)
+                # plainmail = axoctl.process_inbound(mail)
                 self.replBody(plainmail['body'])
                 action = lm.CONTINUE
-                self.log("AXONAUT DECRYPT NAOW")
+
             else:
-                action = lm.CONTINUE  # legacy mails?
                 self.log("LEGACY MAIL")
+                action = lm.CONTINUE  # legacy mails?
         elif is_outbound(self.m_from, self.m_to):
             if self.is_axotype:
-                action = lm.CONTINUE
                 self.log("AXONAUT OUTBOUND")
+                action = lm.CONTINUE
             else:
-                # Encrypt dat shit!
-                #cyphermail = axoctl.process_outbound(mail)
-                action = lm.DISCARD
                 self.log("AXONAUT ENCRYPT")
+                # Encrypt dat shit!
+                # cyphermail = axoctl.process_outbound(mail)
+                action = lm.DISCARD
         else:
             self.log("WHAT A TERRIBLE FAILURE :'(")
 
@@ -133,8 +134,6 @@ def extract_host(mail):
 def is_local(m_from, m_to):
     fhost = extract_host(m_from)
     thost = extract_host(m_to)
-    print("Comparing %s to %s is %s" % (fhost, HOST,fhost==HOST))
-    print("Comparing %s to %s is %s" % (thost, HOST,fhost==HOST))
     return (fhost == HOST) and (thost == HOST)
 
 
@@ -147,8 +146,6 @@ def is_inbound(m_from, m_to):
 def is_outbound(m_from, m_to):
     fhost = extract_host(m_from)
     thost = extract_host(m_to)
-    print("Comparing %s to %s" % (fhost, HOST))
-    print("Comparing %s to %s" % (thost, HOST))
     return (fhost == HOST) and (not (thost == HOST))
 
 

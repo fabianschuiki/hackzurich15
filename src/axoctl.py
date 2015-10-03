@@ -202,6 +202,8 @@ class AxoCtl(object):
             a.saveState();
 
         elif content_type == "message/x-axonaut+keyreq":
+            log("KEYRQ")
+
             segments = in_mail["body"].split('\n')
             DHIs = segments[0].strip()
             DHRs = segments[1].strip()
@@ -229,3 +231,8 @@ class AxoCtl(object):
                 a.saveState()
 
         return
+
+
+def log(msg):
+    print msg
+    sys.stdout.flush()

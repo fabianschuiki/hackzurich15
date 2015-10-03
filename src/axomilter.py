@@ -6,6 +6,7 @@ import libmilter as lm
 import sys
 import time
 from axoctl import AxoCtl
+import traceback
 
 HOST = "example.com"
 
@@ -99,7 +100,10 @@ class AxoMilter(lm.ThreadMixin, lm.MilterProtocol):
             if self.is_axotype:
                 self.log("AXONAUT - decrypting")
                 # decrypt if axolotl
-                AxoCtl().process_inbound(mail)
+                try:
+                    AxoCtl().process_inbound(mail)
+                except:
+                    traceback.print_exc()
                 action = lm.DISCARD
 
             else:

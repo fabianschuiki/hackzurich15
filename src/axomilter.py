@@ -64,6 +64,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
 
     def eob(self, cmdDict):
         self.log('EOB')
+        self.replBody("DAT MAIL!")
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return lm.CONTINUE
 
@@ -74,18 +75,6 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
 def main():
     import signal, traceback
 
-    parser = \
-        argparse.ArgumentParser(description='MILF MILTER'
-                                , epilog='Bugfree.')
-    parser.add_argument('--port', '-p', action='store', default='8890',
-                        help='port on localhost to use (default 8890)')
-    parser.add_argument('--rrtype', '-r', action='store',
-                        default='65280',
-                        help='RRtype allocation (default private use 65280)')
-    parser.add_argument('--timeout', '-t', action='store', default=600,
-                        help='timeout (default 600)')
-    args = parser.parse_args()
-
     # We can set our milter opts here
     opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS
 
@@ -95,6 +84,7 @@ def main():
     f = lm.ForkFactory('inet:127.0.0.1:5000', AxoMilter, opts)
 
     def sigHandler(num, frame):
+        print "Good bye!"
         f.close()
         sys.exit(0)
 

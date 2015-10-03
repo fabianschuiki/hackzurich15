@@ -76,7 +76,7 @@ def main():
     import signal, traceback
 
     # We can set our milter opts here
-    opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS
+    opts = lm.SMFIF_CHGFROM | lm.SMFIF_ADDRCPT | lm.SMFIF_QUARANTINE | lm.SMFIF_ADDHDRS | lm.SMFIF_CHGBODY
 
     # We initialize the factory we want to use (you can choose from an
     # AsyncFactory, ForkFactory or ThreadFactory.  You must use the

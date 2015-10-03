@@ -6,9 +6,9 @@
 # by T. Richner, F. Schuiki, M. Eppenberger
 # ====
 
-from pyaxo import *
+from pyaxo import Axolotl
 from contextlib import contextmanager
-from sendmail import *
+from sendmail import sendmimemail
 from email.mime.text import MIMEText
 import os
 import binascii
@@ -62,11 +62,18 @@ class AxoCtl(object):
 
 		self.db_path = self.data_dir+"/conversations.db"
 		self.handshakes_dir = self.data_dir+"/handshakes"
+		self.queues_dir = self.data_dir+"/queues"
 
 		if not os.path.exists(self.data_dir):
 			os.makedirs(self.data_dir)
 		if not os.path.exists(self.handshakes_dir):
 			os.makedirs(self.handshakes_dir)
+		if not os.path.exists(self.queues_dir):
+			os.makedirs(self.queues_dir)
+
+
+	def send_mail(self, mail):
+		print "would send mail %s" % mail
 
 
 	def process_outbound(self, in_mail):
@@ -84,12 +91,20 @@ class AxoCtl(object):
 
 		my_id = in_mail["from"]
 		other_id = in_mail["to"]
-		hskey_path = self.handshakes_dir+"/"+hashlib.sha1(my_id+":"+other_id).hexdigest()
+		conv_hash = hashlib.sha1(my_id+":"+other_id).hexdigest()
+		hskey_path = self.handshakes_dir+"/"+conv_hash
+		queue_path = self.queues_dir+"/"+conv_hash
 
 		if content_type != "message/x-axonaut":
 			# If this is a message that we are supposed to encode, see whether we
 			# already have an established session. If we don't, we need to negotiate
 			# keys with our peer first.
+
+			i = 1;
+			path = None
+			while path == None or os.path.exists(path):
+				path = "%s/%04i" % (queue_path,i)
+				i = i + 1
 
 			if not os.path.exists(hskey_path):
 				a = self.makeAxolotl(my_id)
@@ -107,11 +122,16 @@ class AxoCtl(object):
 				# TODO: send mail and push this message into the queue.
 				print "would send keyreq "+out_mail_body
 
+				print "queueing message"
+				if not os.path.exists(queue_path):
+					os.makedirs(queue_path)
+				pickle.dump(in_mail, open(path, "w"))
+
 				kreq_msg = MIMEText(out_mail_body)
 				kreq_msg["From"] = my_id
 				kreq_msg["To"] = other_id
 				kreq_msg["Subject"] = "Axolotl Key Exchange"
-				sendmimemmail(kreq_msg)
+				sendmimemail(kreq_msg)
 
 				pickle.dump({
 					"state": a.state,
@@ -123,7 +143,24 @@ class AxoCtl(object):
 				# fails, push the message into the queue as well. If the state
 				# exists, encrypt and magic shall ensue.
 				# if axo.loadState(in_mail["from"], in_mail["to"]) == False:
-				print "Kung Fury approves of the existing session"
+				try:
+					a = self.makeAxolotl(my_id)
+					a.loadState()
+					print "Kung Fury approves of the existing session"
+
+					self.send_mail(in_mail)
+					if os.path.isdir(queue_path):
+						for d in os.listdir(queue_path):
+							self.send_mail(pickle.load(open(queue_path+"/"+d)))
+
+					a.saveState()
+
+				except:
+					print "Kung Fury does not approve, still no session"
+					print "queueing message"
+					if not os.path.exists(queue_path):
+						os.makedirs(queue_path)
+					pickle.dump(in_mail, open(path, "w"))
 
 
 

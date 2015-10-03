@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 
 
 # u need dat: from email.mime.text import MIMEText
-def sendmimemmail(mimetext):
+def sendmimemail(mimetext):
     # msg = MIMEText(mail['body'])
     # msg["From"] = mail['from']
     # msg["To"] = mail['to']

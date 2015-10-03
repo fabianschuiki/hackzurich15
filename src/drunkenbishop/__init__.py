@@ -40,4 +40,6 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
 
     mailtext += fingerprints
 
+    mailtext += "\nBest regards,\nyour friendly Axonauts"
+
     return mailtext

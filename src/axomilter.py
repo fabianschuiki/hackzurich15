@@ -101,7 +101,7 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
             else:
                 action = lm.CONTINUE  # legacy mails?
                 self.log("LEGACY MAIL")
-        elif is_outbound(self.m_from, self.m_to) and self.is_axotype:
+        elif is_outbound(self.m_from, self.m_to):
             if self.is_axotype:
                 action = lm.CONTINUE
                 self.log("AXONAUT OUTBOUND")
@@ -110,6 +110,8 @@ class AxoMilter(lm.ForkMixin, lm.MilterProtocol):
                 #cyphermail = axoctl.process_outbound(mail)
                 action = lm.DISCARD
                 self.log("AXONAUT ENCRYPT")
+        else:
+            self.log("WHAT A TERRIBLE FAILURE :'(")
 
         # self.setReply('554' , '5.7.1' , 'Rejected because I said so')
         return action

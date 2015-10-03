@@ -32,7 +32,7 @@ def GetFPrintMail(mykey, myid, otherkey, otherid):
 
     fingerprints = "\n"
     for l1,l2 in lines:
-        fingerprints + ("%s %s\n" % (l1,l2))
+        fingerprints += ("%s %s\n" % (l1,l2))
 
     mailtext += fingerprints
 

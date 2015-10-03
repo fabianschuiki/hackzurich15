@@ -91,7 +91,7 @@ class AxoCtl(object):
         conv_hash = hashlib.sha1(my_id + ":" + other_id).hexdigest()
         hskey_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
-
+        print "hashed around a bit"
         if content_type != "message/x-axonaut":
             # If this is a message that we are supposed to encode, see whether we
             # already have an established session. If we don't, we need to negotiate

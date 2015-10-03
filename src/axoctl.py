@@ -163,7 +163,6 @@ class AxoCtl(object):
                         os.makedirs(queue_path)
                     pickle.dump(in_mail, open(path, "w"))
 
-
     def process_inbound(self, in_mail):
         """
         Function to decrypt an incoming mail. Responds to a key request if necessary.
@@ -221,42 +220,41 @@ class AxoCtl(object):
                     binascii.b2a_base64(a.handshakePKey).strip())
 
                 print "send keyrsp " + out_mail_body
-	            krsp_msg = MIMEText(out_mail_body)
+                krsp_msg = MIMEText(out_mail_body)
                 krsp_msg["From"] = my_id
                 krsp_msg["To"] = other_id
                 krsp_msg["Subject"] = "Axolotl Key Response"
                 krsp_msg["Content-Type"] = "message/x-axonaut+keyrsp"
                 sendmimemail(krsp_msg)
-
                 a.saveState()
 
-        return
+    return
 
-        contenttype = in_mail["contenttype"]
-        if contenttype.lower() == "message/x-axonaut":
-            """
-            Regular encrypted mail incoming
+    contenttype = in_mail["contenttype"]
+    if contenttype.lower() == "message/x-axonaut":
+        """
+        Regular encrypted mail incoming
 
-            Decrypt with available state and relay.
-            """
-            pass
+        Decrypt with available state and relay.
+        """
+        pass
 
-        elif contenttype.lower() == "message/x-axonaut-keyreq":
-            """
-            Open own state.
-            Respond with own DH part.
-            Incorporate sendes state to own.
-            """
-            pass
+    elif contenttype.lower() == "message/x-axonaut-keyreq":
+        """
+        Open own state.
+        Respond with own DH part.
+        Incorporate sendes state to own.
+        """
+        pass
 
-        elif contenttype.lower() == "message/x-axonaut-keyrsp":
-            """
-            Should never happen.
-            """
-            pass
+    elif contenttype.lower() == "message/x-axonaut-keyrsp":
+        """
+        Should never happen.
+        """
+        pass
 
-        else:
-            """
-            No axolotl mail received. something is wrong
-            """
-            pass
+    else:
+        """
+        No axolotl mail received. something is wrong
+        """
+        pass

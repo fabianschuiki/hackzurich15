@@ -76,9 +76,9 @@ class AxoCtl(object):
     def send_mail(self, mail):
         print "send mail %s" % mail
         msg = MIMEText(mail["body"])
-        msg["Content-Type"] = "message/x-axonaut"
         for k,v in mail["headers"]:
             msg[k] = v
+        msg["Content-Type"] = "message/x-axonaut"
         sendmimemail(msg, mail["from"], mail["to"])
 
 
@@ -189,7 +189,15 @@ class AxoCtl(object):
         hskey_path = self.handshakes_dir + "/" + conv_hash
         queue_path = self.queues_dir + "/" + conv_hash
 
-        if content_type == "message/x-axonaut+keyrsp":
+        if content_type == "message/x-axonaut":
+            print "decrypting message"
+            msg = MIMEText(in_mail["body"])
+            for k,v in in_mail["headers"]:
+                msg[k] = v
+            msg["Content-Type"] = "text/plain"
+            sendmimemail(msg, in_mail["from"], in_mail["to"])
+
+        elif content_type == "message/x-axonaut+keyrsp":
             a = self.makeAxolotl(my_id)
             hs = pickle.load(open(hskey_path, "r"))
             a.state = hs["state"]

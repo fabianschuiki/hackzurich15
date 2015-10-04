@@ -13,7 +13,7 @@ Host clown0
 	IdentitiesOnly yes
 
 Host clown1
-	Hostname maxo1.cloudapp.net
+	Hostname moxa1.cloudapp.net
 	User azureuser
 	IdentityFile ~/.ssh/id_hackzurich
 	IdentitiesOnly yes

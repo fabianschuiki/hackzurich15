@@ -7,6 +7,10 @@ We trade robustness against man-in-the-middle attacks (MITM) in favor of an unob
 Developed at HackZurich 2015 by *Marco Eppenberger*, *Thomas Richner*, and *Fabian Schuiki* from ETH Zurich.
 
 
+## Adversary Model
+
+The adversary, henceforth called Norbert, has the ressources to store 'a lot' of data and is able to pressure any legal entity into releasing keys at a certain point in time. Norbert does not want to be traceable/noticeable as his actions are most likely not exactly legal.
+
 ## Protocol Overview
 
 ```
@@ -88,3 +92,5 @@ Username: `azureuser`, password `B77d795d`.
 - create `HOST` file in `src/`
 - configure postfix for milter, add `smtpd_milters = inet:localhost:5000` to `/etc/postfix/main.cf`
 
+## Special Thanks
+We'd like to express our gratitude to Lenny Linux and Scala Johannson, they kept us awake and motivated.

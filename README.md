@@ -7,6 +7,42 @@ We trade robustness against man-in-the-middle attacks (MITM) in favor of an unob
 Developed at HackZurich 2015 by *Marco Eppenberger*, *Thomas Richner*, and *Fabian Schuiki* from ETH Zurich.
 
 
+## Protocol Overview
+
+```
+              Alice's Trust                                           Bob's Trust                          
++--------------------------------+        untrusted     +--------------------------------+                 
+|                                |                      |                                |                 
+     +-------+        +-------+          +-------+         +-------+          +-------+                    
+     |       |        |       |          |       |         |       |          |       |                    
+     | Alice |        |  MTA  |          |  MTA  |         |  MTA  |          |  Bob  |                    
+     |       |        |       |          | (NSA) |         |       |          |       |                    
+     +---+---+        +---+---+          +---+---+         +---+---+          +---+---+                    
+         |                |                  |                 |                  |                        
+         |     M1         |                  |                 |                  |   ----+                
+         +--------------> |        K_req     |                 |                  |       |                
+         |                +----------------> |      K_req      |                  |       |                
+         |                |                  +---------------> |                  |       |                
+         |                |                  |      K_resp     |                  |       | key agreement &
+         |                |      K_resp      | <---------------+                  |       | first message  
+         |                | <----------------+                 |                  |       |                
+         |                |     C1           |                 |                  |       |                
+         |                +----------------> |     C1          |                  |       |                
+         |                |                  +---------------> |        M1        |       |                
+         |                |                  |                 +----------------> |       |                
+         |                |                  |                 |                  |   ----+                
+         |                |                  |                 |                  |                        
+         |                |                  |                 |                  |   ----+                
+         |     M2         |                  |                 |                  |       |                
+         +--------------> |       C2         |                 |                  |       | All following  
+         |                +----------------> |       C2        |                  |       | messages       
+         |                |                  +---------------> |      M2          |       |                
+         |                |                  |                 +----------------> |       |                
+         |                |                  |                 |                  |       |                
+                                                                                      ----+                
+```
+
+
 ## External Sources
 
 We use the following components not developed by ourselves:
@@ -18,7 +54,7 @@ We use the following components not developed by ourselves:
 [2]: https://github.com/rxcomm/pyaxo
 
 
-## Virtual Machines on Azure:
+## Virtual Machines on Azure
 
 As a testing setup, we leverage Microsoft's Azure cloud infrastructure to create a three-hop route from a client in Zurich to another client in Zurich, via SMTP servers `Dublin -> North America -> Dublin`.
 

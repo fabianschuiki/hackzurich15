@@ -67,6 +67,7 @@ class AxoCtl(object):
         for k, v in mail["headers"]:
             msg[k] = v
         raw = msg.as_string()
+        self.logger.debug(raw)
 
         # Encrypt the message and wrap it up in a new envelope, then send it to
         # the recipient.
@@ -83,6 +84,7 @@ class AxoCtl(object):
 
         # Decrypt the message from the envelope and forward it.
         decoded = axolotl.decrypt(binascii.a2b_base64(mail["body"]))
+        self.logger.debug(decoded)
         sendrawmail(decoded, mail["from"], mail["to"])
 
     def send_fingerprint_mail(self, my_DHIs, my_id, other_DHIs, other_id):
